@@ -1,4 +1,4 @@
-fibonacci_cm
+fibonacci-cm-elliptic
 ============
 Numerical verification of the identity  S_p = -a_p(E)  for the CM
 elliptic curve  E : y^2 = x^3 - 4x  and Fibonacci character sums.
