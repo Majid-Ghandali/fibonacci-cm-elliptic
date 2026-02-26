@@ -32,9 +32,10 @@ jobs:
         with:
           python-version: "3.11"
           environment-file: environment.yml
-          activate-environment: fibonacci-cm-elliptic 
+          activate-environment: fibonacci-cm-elliptic
           use-mamba: true
-          cache: true # استفاده از کش داخلی اکشن (بهینه‌تر)
+          cache: true
+          auto-activate-base: false
 
       - name: Code Quality Checks
         run: |
@@ -65,13 +66,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           environment-file: environment.yml
-          activate-environment: fibonacci-cm-elliptic # اصلاح نام محیط
+          activate-environment: fibonacci-cm-elliptic
           use-mamba: true
           cache: true
+          auto-activate-base: false
+
+      # 🔹 کلید حل مشکل ModuleNotFoundError
+      - name: Install Project in Editable Mode
+        run: pip install -e .
 
       - name: Run Pytest
-        run: |
-          pytest --cov=./ --cov-report=xml --cov-report=term-missing
+        run: pytest --cov=./ --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
         if: always() && hashFiles('coverage.xml') != ''
@@ -131,7 +136,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to PyPI (Trusted Publishing)
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: Wait for API Propagation
@@ -144,6 +149,6 @@ jobs:
           zenodo_token: ${{ secrets.ZENODO_TOKEN }}
           files: dist/*
           title: "Official Release: ${{ github.ref_name }}"
-          description: "Bank-grade production release with SHA256 audit trail for version ${{ github.ref_name }}"
+          description: "Bank-grade production release for version ${{ github.ref_name }}"
           creators: |
             [{"name": "Majid", "affiliation": "Research Lab"}]
