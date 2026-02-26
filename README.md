@@ -11,14 +11,14 @@
 
 ## 📄 Paper
 
-> Ghandali, M. (2026). *Quadratic Residuosity in Fibonacci Sequences:
-> Arithmetic Structure via CM Elliptic Curves and Twisted Character Sums.*
+**Ghandali, M. (2026).** *Quadratic Residuosity in Fibonacci Sequences: Arithmetic Structure via CM Elliptic Curves and Twisted Character Sums.*
 
-**Main result (Theorem 1.3):** For every prime $p > 5$ inert in $\mathbb{Q}(\sqrt{5})$,
+**Main result (Theorem 1.3):** For every prime $p>5$ inert in $\mathbb{Q}(\sqrt{5})$,
+$$
+S_p := \sum_{n=1}^{p+1} \chi(F_n \bmod p) = -a_p(E)
+$$
+where $\chi$ is the Legendre symbol mod $p$ and $a_p(E) = p+1 - \#E(\mathbb{F}_p)$ is the Frobenius trace of $E: y^2 = x^3 - 4x$.
 
-$$S_p := \sum_{n=1}^{p+1} \chi(F_n \bmod p) = -a_p(E)$$
-
-where $\chi$ is the Legendre symbol mod $p$ and $a_p(E) = p+1 - \#E(\mathbb{F}_p)$ is the Frobenius trace of $E$.
 
 ---
 
