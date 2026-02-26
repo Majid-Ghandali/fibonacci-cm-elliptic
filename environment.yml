@@ -1,0 +1,18 @@
+name: fibonacci-cm-elliptic
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - pytest
+  - mypy
+  - flake8
+  - pip
+  - pip:
+      - codecov
+      - twine
+      - build
