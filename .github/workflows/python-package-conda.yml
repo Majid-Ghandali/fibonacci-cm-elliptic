@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.11"
           environment-file: environment.yml
-          activate-environment: fibonacci-cm-elliptic # اصلاح نام محیط
+          activate-environment: fibonacci-cm-elliptic 
           use-mamba: true
           cache: true # استفاده از کش داخلی اکشن (بهینه‌تر)
 
@@ -71,7 +71,6 @@ jobs:
 
       - name: Run Pytest
         run: |
-          # اطمینان از نصب بودن pytest-cov در صورت عدم شناسایی
           pytest --cov=./ --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
