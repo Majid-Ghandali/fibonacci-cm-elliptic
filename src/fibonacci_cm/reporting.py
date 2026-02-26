@@ -74,7 +74,7 @@ def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
             "Hasse bound (theoretical)",
         ],
         "Value": [
-            "Ghandali (2025) — Quadratic Residuosity in Fibonacci Sequences",
+            "Ghandali (2026) — Quadratic Residuosity in Fibonacci Sequences",
             f"3 to {int(df['p'].max()):,}",
             f"{n_total:,}",
             f"{n_split:,}",
