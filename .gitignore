@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.numba_cache/
+
+# Output data (large files — not tracked in git)
+CM_Research_Outputs/
+*.csv
+*.xlsx
+
+# LaTeX auxiliary
+*.aux
+*.log
+*.toc
+*.out
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

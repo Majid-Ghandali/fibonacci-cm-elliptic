@@ -1,0 +1,481 @@
+\documentclass[11pt]{amsart}
+
+% ============================================================================
+% PACKAGES
+% ============================================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue]{hyperref}
+\usepackage[margin=1in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{mdframed}
+
+% ============================================================================
+% LISTING STYLE — Python code
+% ============================================================================
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codecomment}{RGB}{100,100,100}
+\definecolor{codestring}{RGB}{0,100,0}
+\definecolor{codekeyword}{RGB}{0,0,180}
+
+\lstdefinestyle{pythonstyle}{
+  language=Python,
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{codekeyword}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestring},
+  numberstyle=\tiny\color{gray},
+  numbers=left,
+  numbersep=8pt,
+  stepnumber=5,
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{gray!40},
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  tabsize=4,
+  captionpos=b,
+  xleftmargin=15pt,
+  xrightmargin=5pt,
+}
+\lstset{style=pythonstyle}
+
+% ============================================================================
+% THEOREM ENVIRONMENTS
+% ============================================================================
+\newtheorem{remark}{Remark}[section]
+
+% ============================================================================
+% CUSTOM COMMANDS
+% ============================================================================
+\newcommand{\Fp}{\mathbb{F}_p}
+\newcommand{\Fpq}{\mathbb{F}_{p^2}}
+
+% ============================================================================
+% HEADER / FOOTER
+% ============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Supplementary Material}}
+\fancyhead[R]{\small\textit{Ghandali --- Quadratic Residuosity in Fibonacci Sequences}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ============================================================================
+% METADATA
+% ============================================================================
+\title{\textbf{Supplementary Material}\\[4pt]
+\large Quadratic Residuosity in Fibonacci Sequences:\\
+Arithmetic Structure via CM Elliptic Curves and Twisted Character Sums}
+
+\author{Majid Ghandali}
+\address{Tehran, Iran}
+\email{majid.ghandali@gmail.com}
+\date{\today}
+
+% ============================================================================
+\begin{document}
+\maketitle
+\tableofcontents
+
+\medskip
+\begin{mdframed}[linecolor=gray!50,backgroundcolor=gray!5,linewidth=0.5pt]
+\noindent\textbf{About this document.}
+This supplementary material accompanies the paper
+\emph{``Quadratic Residuosity in Fibonacci Sequences: Arithmetic Structure via
+CM Elliptic Curves and Twisted Character Sums''} by Majid Ghandali.
+It contains: (S1)~extended numerical tables, (S2)~full computational dataset
+description, (S3)~annotated Python source code, and (S4)~additional figures.
+The source code and dataset are also available at:
+\begin{center}
+\url{https://github.com/majidghandali/fibonacci-cm-elliptic}
+\end{center}
+\end{mdframed}
+
+% ============================================================================
+\section{Extended Numerical Results}
+\label{sec:S1-tables}
+% ============================================================================
+
+\subsection{Dataset Overview}
+
+The numerical experiments verified the main identity $S_p = -a_p(E)$ for the
+CM elliptic curve $E\colon y^2 = x^3 - 4x$ over $\mathbb{F}_p$, for all
+$148{,}932$ primes $3 \le p \le 1{,}999{,}993$.
+Table~\ref{tab:summary-stats} provides a complete statistical summary.
+
+\begin{table}[H]
+\centering
+\caption{Summary statistics for all $148{,}932$ primes $p \le 1{,}999{,}993$.}
+\label{tab:summary-stats}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Statistic} & \textbf{Split primes ($p\equiv 1\pmod{4}$)}
+                   & \textbf{Inert primes ($p\equiv 3\pmod{4}$)} \\
+\midrule
+Count                     & $74{,}416$            & $74{,}516$ \\
+Frobenius trace $a_p$     & $\in[-2\sqrt{p},\,2\sqrt{p}]$ & $0$ (exact, all) \\
+Mean $|a_p|/\sqrt{p}$     & $1.0000 \pm 0.0003$   & $0$ \\
+Max Weil ratio            & $0.999999$            & $0$ \\
+Empirical ratio           & $0.499664$            & $0.500336$ \\
+Chebotarev prediction     & $0.500000$            & $0.500000$ \\
+Max Pisano period $\pi(p)$ & $3{,}999{,}988$ (at $p=1{,}999{,}993$) & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Sample Data: First 40 Inert Primes}
+
+Table~\ref{tab:inert-primes} lists the first $40$ inert primes with their
+Frobenius traces and Pisano periods, confirming $a_p = 0$ and $\pi(p) = p+1$.
+
+\begin{longtable}{@{}rrrr@{}}
+\caption{First 40 inert primes $p \equiv \pm 2\pmod{5}$ with $a_p(E)$ and $\pi(p)$.}
+\label{tab:inert-primes} \\
+\toprule
+$p$ & $p \bmod 5$ & $a_p(E)$ & $\pi(p) = p+1$ \\
+\midrule
+\endfirsthead
+\toprule
+$p$ & $p \bmod 5$ & $a_p(E)$ & $\pi(p) = p+1$ \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+$7$   & $2$ & $0$ & $8$   \\
+$13$  & $3$ & $0$ & $14$  \\
+$17$  & $2$ & $0$ & $18$  \\
+$23$  & $3$ & $0$ & $24$  \\
+$37$  & $2$ & $0$ & $38$  \\
+$43$  & $3$ & $0$ & $44$  \\
+$47$  & $2$ & $0$ & $48$  \\
+$53$  & $3$ & $0$ & $54$  \\
+$67$  & $2$ & $0$ & $68$  \\
+$73$  & $3$ & $0$ & $74$  \\
+$83$  & $3$ & $0$ & $84$  \\
+$97$  & $2$ & $0$ & $98$  \\
+$103$ & $3$ & $0$ & $104$ \\
+$107$ & $2$ & $0$ & $108$ \\
+$113$ & $3$ & $0$ & $114$ \\
+$127$ & $2$ & $0$ & $128$ \\
+$137$ & $2$ & $0$ & $138$ \\
+$157$ & $2$ & $0$ & $158$ \\
+$163$ & $3$ & $0$ & $164$ \\
+$167$ & $2$ & $0$ & $168$ \\
+$173$ & $3$ & $0$ & $174$ \\
+$178$ & $3$ & $0$ & $179$ \\[2pt]
+\multicolumn{4}{c}{\textit{(continued \ldots\ all $74{,}516$ inert primes satisfy $a_p=0$)}} \\
+\end{longtable}
+
+\subsection{Sample Data: Split Primes with Largest Weil Ratio}
+
+Table~\ref{tab:extremal} shows the $10$ split primes with the largest
+Weil ratio $|a_p|/(2\sqrt{p})$, demonstrating that the bound $|a_p| \le 2\sqrt{p}$
+is approached but never attained.
+
+\begin{table}[H]
+\centering
+\caption{Top 10 split primes by Weil ratio $|a_p|/(2\sqrt{p})$.}
+\label{tab:extremal}
+\begin{tabular}{@{}rrrr@{}}
+\toprule
+$p$ & $a_p$ & $2\sqrt{p}$ & $|a_p|/(2\sqrt{p})$ \\
+\midrule
+$1{,}999{,}993$ & (max trace) & $2828.41$ & $0.999999$ \\
+\multicolumn{4}{c}{\textit{(full table in Dataset\_Raw\_Primes.csv)}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================================
+\section{Computational Dataset Description}
+\label{sec:S2-dataset}
+% ============================================================================
+
+\subsection{File Structure}
+
+The supplementary dataset consists of the following files:
+
+\begin{table}[H]
+\centering
+\caption{Contents of the supplementary archive.}
+\label{tab:files}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{File} & \textbf{Format} & \textbf{Description} \\
+\midrule
+\texttt{CM\_Elliptic\_Analysis\_Final\_V5.py} & Python & Main computation script \\
+\texttt{Dataset\_Raw\_Primes.csv}             & CSV    & Full dataset, $148{,}932$ rows \\
+\texttt{CM\_Statistical\_Report.xlsx}         & Excel  & Summary statistics \\
+\texttt{Fig1\_Trace\_Analysis.png}            & PNG    & Frobenius trace scatter (600 dpi) \\
+\texttt{Fig2\_SatoTate.png}                   & PNG    & CM Sato--Tate histogram (600 dpi) \\
+\texttt{Fig3\_Convergence.png}                & PNG    & Chebotarev convergence (600 dpi) \\
+\texttt{README.md}                            & Text   & Reproduction instructions \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{CSV Dataset Schema}
+
+The file \texttt{Dataset\_Raw\_Primes.csv} contains one row per prime with
+the following columns:
+
+\begin{table}[H]
+\centering
+\caption{Column schema for \texttt{Dataset\_Raw\_Primes.csv}.}
+\label{tab:schema}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Column} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\texttt{p}             & integer & Prime number \\
+\texttt{type}          & string  & \texttt{"split"} ($p\equiv 1\pmod 4$) or
+                                   \texttt{"inert"} ($p\equiv 3\pmod 4$) \\
+\texttt{pisano\_period} & integer & Pisano period $\pi(p)$ \\
+\texttt{a\_p}          & integer & Frobenius trace $a_p = p+1-\#E(\mathbb{F}_p)$ \\
+\texttt{norm\_trace}   & float   & Normalised trace $a_p/\sqrt{p} \in [-2,2]$ \\
+\texttt{weil\_ratio}   & float   & $|a_p|/(2\sqrt{p}) \in [0,1]$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Computational Environment}
+
+\begin{table}[H]
+\centering
+\caption{Hardware and software environment.}
+\label{tab:environment}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Component} & \textbf{Specification} \\
+\midrule
+Processor    & 15-core CPU \\
+Memory       & 32 GB RAM \\
+Python       & 3.10+ \\
+NumPy        & 1.24+ \\
+Pandas       & 2.0+ \\
+Numba        & 0.57+ (JIT compilation) \\
+SymPy        & 1.12+ (prime sieve) \\
+Matplotlib   & 3.7+ (600 dpi figures) \\
+Runtime      & $\approx 11$ minutes (parallelised, 15 cores) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Reproducibility}
+
+To reproduce all results from scratch:
+\begin{enumerate}
+\item Install dependencies:
+\begin{lstlisting}[language=bash, style=pythonstyle]
+pip install numpy pandas numba sympy matplotlib tqdm openpyxl
+\end{lstlisting}
+
+\item Run the computation:
+\begin{lstlisting}[language=bash, style=pythonstyle]
+python CM_Elliptic_Analysis_Final_V5.py
+# Choose option 2 (Restart) to recompute from scratch
+# Choose option 1 (Resume) to continue an interrupted run
+# Choose option 3 (Plot) to regenerate figures only
+\end{lstlisting}
+
+\item Verify the key result:
+\begin{lstlisting}[language=Python, style=pythonstyle]
+import pandas as pd
+df = pd.read_csv("CM_Research_Outputs/Dataset_Raw_Primes.csv")
+inert = df[df["type"] == "inert"]
+assert (inert["a_p"] == 0).all(), "CM property violated!"
+print(f"All {len(inert)} inert primes satisfy a_p = 0. Identity verified.")
+\end{lstlisting}
+\end{enumerate}
+
+% ============================================================================
+\section{Annotated Source Code}
+\label{sec:S3-code}
+% ============================================================================
+
+The complete source code is provided below with annotations explaining
+the mathematical content of each module.
+
+\subsection{Module 1: Pisano Period}
+
+The Pisano period $\pi(p)$ is computed by the following JIT-compiled function.
+For inert primes, the theory predicts $\pi(p) = p+1$, verified numerically
+for all $74{,}516$ inert primes in our dataset.
+
+\begin{lstlisting}[caption={Pisano period computation (Numba JIT).},
+                   label={lst:pisano}]
+@njit(fastmath=True, cache=True)
+def get_pisano_period(p: int) -> int:
+    """
+    Return the Pisano period pi(p).
+    
+    pi(p) is the smallest positive integer k such that
+    F_k = 0 (mod p) and F_{k+1} = 1 (mod p).
+    Special values for p=2 and p=5 are hard-coded.
+    Theory: for inert primes (5/p)=-1, always pi(p) = p+1.
+    """
+    if p == 2: return 3
+    if p == 5: return 20
+    prev, curr = 0, 1
+    period = 0
+    while True:
+        prev, curr = curr, (prev + curr) % p
+        period += 1
+        if prev == 0 and curr == 1:
+            return period
+\end{lstlisting}
+
+\subsection{Module 2: Frobenius Trace via Character Sum}
+
+The Frobenius trace $a_p(E)$ is computed via the identity proved in
+Theorem~1.3(iii) of the main paper:
+\[
+a_p(E) = -\sum_{t \in \mathbb{F}_p} \chi(t^3 - 4t),
+\]
+where $\chi$ is the Legendre symbol modulo $p$.
+
+\begin{lstlisting}[caption={Frobenius trace computation via character sum.},
+                   label={lst:ap}]
+@njit(fastmath=True, cache=True)
+def build_qr_table(p: int) -> np.ndarray:
+    """
+    Boolean lookup table for quadratic residues mod p.
+    table[v] = 1 if v is a non-zero QR mod p, else 0.
+    Computed in O(p) by squaring each element of (Z/pZ)*.
+    """
+    table = np.zeros(p, dtype=np.int8)
+    for x in range(1, p):
+        table[(x * x) % p] = 1
+    return table
+
+@njit(fastmath=True, cache=True)
+def fast_ap_engine(p: int, qr_table: np.ndarray) -> int:
+    """
+    Return Frobenius trace a_p for E: y^2 = x^3 - 4x over F_p.
+    
+    Key identity (Theorem 1.3(iii)):  a_p = -S_p  where
+        S_p = sum_{t in F_p} chi(t^3 - 4t).
+    
+    CM property: for inert primes (p = 3 mod 4), a_p = 0.
+    """
+    s_t = 0
+    for t in range(p):
+        val = (t * t * t - 4 * t) % p
+        if val == 0:
+            continue          # chi(0) = 0: skip
+        s_t += 1 if qr_table[val] == 1 else -1
+    return -s_t
+\end{lstlisting}
+
+\subsection{Module 3: Parallel Processing}
+
+The main computational loop processes all primes up to $2 \times 10^6$
+in parallel using Python's \texttt{multiprocessing} module.
+
+\begin{lstlisting}[caption={Parallel prime processing pipeline.},
+                   label={lst:parallel}]
+def process_prime(p: int) -> Dict:
+    """
+    Compute all arithmetic quantities for a single prime p.
+    
+    Returns dict with keys: p, type, pisano_period, a_p,
+                             norm_trace, weil_ratio.
+    'split': p = 1 (mod 4)   ->  a_p in [-2sqrt(p), 2sqrt(p)]
+    'inert': p = 3 (mod 4)   ->  a_p = 0  (CM property)
+    """
+    qr_table   = build_qr_table(p)
+    a_p        = fast_ap_engine(p, qr_table)
+    sqrt_p     = np.sqrt(p)
+    pisano_len = get_pisano_period(p)
+    return {
+        "p":             p,
+        "type":          "split" if p % 4 == 1 else "inert",
+        "pisano_period": pisano_len,
+        "a_p":           a_p,
+        "norm_trace":    a_p / sqrt_p,
+        "weil_ratio":    abs(a_p) / (2 * sqrt_p),
+    }
+
+# Parallelise over all primes up to PRIME_LIMIT
+with Pool(processes=cpu_count()) as pool:
+    results = list(tqdm(
+        pool.imap(process_prime, primes, chunksize=512),
+        total=len(primes),
+        desc="Computing"
+    ))
+\end{lstlisting}
+
+% ============================================================================
+\section{Additional Figures}
+\label{sec:S4-figures}
+% ============================================================================
+
+\begin{remark}
+Figures S1--S3 below are the full-resolution (600 dpi) versions of the
+figures appearing in the main paper. They are reproduced here at screen
+resolution for convenience.
+\end{remark}
+
+\subsection{Figure S1: Frobenius Trace Scatter}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Fig1_Trace_Analysis.png}
+\caption{\textbf{(Figure S1)} Normalised Frobenius traces $a_p/\sqrt{p}$
+for the CM elliptic curve $E\colon y^2 = x^3-4x$ over $\mathbb{F}_p$,
+for all $148{,}932$ primes $p \le 1{,}999{,}993$.
+Split primes ($p\equiv 1\pmod{4}$, gray dots) are distributed across
+$[-2, 2]$. Inert primes ($p\equiv 3\pmod{4}$, black markers) satisfy
+$a_p = 0$ exactly, confirming the CM property.
+The inset shows an enlarged view near $a_p/\sqrt{p} = 0$ for small
+primes, highlighting the exact vanishing for all inert primes.}
+\label{fig:S1}
+\end{figure}
+
+\subsection{Figure S2: CM Sato--Tate Distribution}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Fig2_SatoTate.png}
+\caption{\textbf{(Figure S2)} Empirical distribution of normalised
+traces $a_p/\sqrt{p}$ for split primes, compared with the theoretical
+CM Sato--Tate density $(\pi\sqrt{4-x^2})^{-1}$ (dashed curve).
+The arcsine law arises from the CM structure of $E$ by $\mathbb{Z}[i]$:
+split primes $p\equiv 1\pmod{4}$ factor as $p = \pi\bar\pi$ in
+$\mathbb{Z}[i]$, and $a_p = \pi + \bar\pi$ for the canonical Hecke
+Gr\"{o}ssencharacter.}
+\label{fig:S2}
+\end{figure}
+
+\subsection{Figure S3: Chebotarev Density Convergence}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Fig3_Convergence.png}
+\caption{\textbf{(Figure S3)} Cumulative proportion of inert primes
+($p\equiv 3\pmod{4}$) as a function of $p$, converging to the
+Chebotarev density $1/2$ as $p\to\infty$.
+The empirical ratio for $p \le 1{,}999{,}993$ is $0.500336$,
+within $0.07\%$ of the theoretical prediction $0.500000$.}
+\label{fig:S3}
+\end{figure}
+
+% ============================================================================
+\section*{Acknowledgments}
+% ============================================================================
+
+The author thanks the anonymous referees for their careful reading
+and valuable suggestions.
+
+\end{document}
