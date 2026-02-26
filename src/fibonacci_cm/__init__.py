@@ -1,4 +1,3 @@
-"""
 fibonacci_cm
 ============
 Numerical verification of the identity  S_p = -a_p(E)  for the CM
@@ -6,7 +5,7 @@ elliptic curve  E : y^2 = x^3 - 4x  and Fibonacci character sums.
 
 Reference
 ---------
-Ghandali, M. (2025). Quadratic Residuosity in Fibonacci Sequences:
+Ghandali, M. (2026). Quadratic Residuosity in Fibonacci Sequences:
 Arithmetic Structure via CM Elliptic Curves and Twisted Character Sums.
 
 Modules
