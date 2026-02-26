@@ -1,3 +1,4 @@
+"""
 main.py
 =======
 Entry point for the Fibonacci CM computation pipeline.
