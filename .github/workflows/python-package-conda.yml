@@ -1,34 +1,148 @@
-name: Python Package using Conda
+name: Enterprise Python CI/CD (Indestructible Hardened)
 
-on: [push]
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
 
 jobs:
-  build-linux:
+  # -----------------------------------
+  # 1️⃣ Static Analysis
+  # -----------------------------------
+  lint-and-typecheck:
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 5
-
+    defaults:
+      run:
+        shell: bash -l {0} 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.10'
-    - name: Add conda to system path
-      run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/bin >> $GITHUB_PATH
-    - name: Install dependencies
-      run: |
-        conda env update --file environment.yml --name base
-    - name: Lint with flake8
-      run: |
-        conda install flake8
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        conda install pytest
-        pytest
+      - uses: actions/checkout@v4
+      - name: Setup Conda/Mamba
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: "3.11"
+          environment-file: environment.yml
+          activate-environment: research_env
+          use-mamba: true
+          cache: true
+          auto-activate-base: false
+
+      - name: Code Quality Checks
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          mypy . --ignore-missing-imports
+
+  # -----------------------------------
+  # 2️⃣ Cross-Platform Testing
+  # -----------------------------------
+  test:
+    needs: lint-and-typecheck
+    name: Test (${{ matrix.os }} / Py ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11"]
+    defaults:
+      run:
+        shell: bash -l {0} 
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Conda/Mamba
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          environment-file: environment.yml
+          activate-environment: research_env
+          use-mamba: true
+          cache: true
+          auto-activate-base: false
+
+      - name: Run Pytest
+        run: pytest --cov=./ --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage to Codecov
+        if: always() && hashFiles('coverage.xml') != ''
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: ${{ matrix.os }}-py${{ matrix.python-version }}
+          fail_ci_if_error: false
+
+  # -----------------------------------
+  # 3️⃣ Build & Release (Full Integrity & Audit)
+  # -----------------------------------
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install Build Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build sdist and wheel
+        run: python -m build --sdist --wheel
+
+      - name: Verify Build Integrity
+        run: twine check dist/*
+
+      - name: Generate Checksums
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+
+      - name: Internal Audit Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-checksums-${{ github.ref_name }}
+          path: dist/checksums.txt
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/* 
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to PyPI (Trusted Publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Wait for API Propagation
+        run: sleep 15
+
+      - name: Publish to Zenodo
+        if: success() && steps.create_release.outcome == 'success'
+        uses: zenodo/zenodo-github-action@v1.4.0
+        with:
+          zenodo_token: ${{ secrets.ZENODO_TOKEN }}
+          files: dist/*
+          title: "Official Release: ${{ github.ref_name }}"
+          description: "Bank-grade production release with SHA256 audit trail for version ${{ github.ref_name }}"
+          creators: |
+            [{"name": "Majid", "affiliation": "Research Lab"}]
