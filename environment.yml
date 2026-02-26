@@ -9,6 +9,7 @@ dependencies:
   - pandas
   - matplotlib
   - pytest
+  - pytest-cov 
   - mypy
   - flake8
   - pip
