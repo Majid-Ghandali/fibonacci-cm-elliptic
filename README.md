@@ -17,7 +17,7 @@
 $$
 S_p := \sum_{n=1}^{p+1} \chi(F_n \bmod p) = -a_p(E)
 $$
-where $\chi$ is the Legendre symbol mod $p$ and $a_p(E) = p+1 - \#E(\mathbb{F}_p)$ is the Frobenius trace of $E: y^2 = x^3 - 4x$.
+where $\chi$ is the Legendre symbol mod $p$ and $a_p(E) = p+1 - \\#E(\mathbb{F}_p)$ is the Frobenius trace of $E: y^2 = x^3 - 4x$.
 
 
 ---
