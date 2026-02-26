@@ -40,25 +40,33 @@ and Frobenius traces of a CM elliptic curve.
 ```
 fibonacci-cm-elliptic/
 │
-├── src/fibonacci_cm/
-│   ├── __init__.py       # Package metadata
-│   ├── arithmetic.py     # Pisano period, QR table, Frobenius trace (Numba JIT)
-│   ├── pipeline.py       # Parallel prime processing, fault-tolerant CSV streaming
-│   ├── reporting.py      # Excel report generation, console summary
-│   └── figures.py        # Three publication-ready figures (600 dpi)
+├── .github/workflows/
+│   └── python-package-conda.yml    # Enterprise CI/CD: Automated matrix testing, build integrity & Zenodo release
+│
+├── src/                            # Source Root: Isolated environment for production-grade code
+│   └── fibonacci_cm/
+│       ├── __init__.py             # Package initialization and metadata
+│       ├── arithmetic.py           # Core Arithmetic: Pisano periods, QR tables, and Frobenius traces (Numba JIT optimized)
+│       ├── pipeline.py             # Data Pipeline: Parallel prime processing and fault-tolerant CSV streaming
+│       ├── reporting.py            # Analytics: Excel-based report generation and console summaries
+│       └── figures.py              # Visualization: Multi-panel publication-ready plots (600 dpi PNG/PDF)
 │
 ├── tests/
-│   └── test_arithmetic.py   # 12 unit tests (pytest)
+│   └── test_arithmetic.py          # Unit Testing: 12 high-coverage pytest cases for mathematical correctness
 │
-├── paper/
-│   ├── fibonacci_paper_v2.tex        # Main article (AMS LaTeX)
-│   ├── supplementary_material.tex    # Supplementary Material
-│   └── references.bib                # Bibliography (15 entries)
+├── paper/                          # Scholarly Content: LaTeX source and bibliography
+│   ├── fibonacci_paper_v2.tex      # Main Manuscript: AMS-standard LaTeX document
+│   ├── supplementary_material.tex  # Appendices: Detailed proofs and additional computational tables
+│   └── references.bib              # Bibliography: Managed BibTeX entries for academic citations
 │
-├── data/figures/         # Pre-generated publication figures (600 dpi PNG)
-├── main.py               # Entry point
-├── requirements.txt      # Python dependencies
-└── README.md
+├── data/
+│   └── figures/                    # Artifacts: Pre-rendered high-resolution figures for the manuscript
+│
+├── pyproject.toml                  # PEP 621 Config: Build-system requirements, project metadata, and tool settings
+├── environment.yml                 # Conda Environment: Deterministic dependency lock for research reproducibility
+├── main.py                         # Application Entry: CLI interface for running the full computational pipeline
+├── requirements.txt                # Legacy Compatibility: Pip-standard dependency list
+└── README.md                       # Documentation: Project overview, installation guide, and usage instructions
 ```
 
 ---
