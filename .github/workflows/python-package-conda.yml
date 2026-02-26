@@ -38,7 +38,7 @@ jobs:
         with:
           python-version: "3.11"
           environment-file: environment.yml
-          activate-environment: research_env
+          aactivate-environment: fibonacci-cm-elliptic 
           use-mamba: true
           auto-activate: false
 
