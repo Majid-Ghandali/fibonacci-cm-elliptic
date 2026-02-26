@@ -1,4 +1,5 @@
-fibonacci-cm-elliptic
+"""
+fibonacci-cm
 ============
 Numerical verification of the identity  S_p = -a_p(E)  for the CM
 elliptic curve  E : y^2 = x^3 - 4x  and Fibonacci character sums.
@@ -10,10 +11,10 @@ Arithmetic Structure via CM Elliptic Curves and Twisted Character Sums.
 
 Modules
 -------
-arithmetic   : Pisano period, Legendre symbol, Frobenius trace (Numba JIT)
-pipeline     : Parallel prime processing and CSV streaming
-reporting    : Excel report generation and console summary
-figures      : Publication-ready figure generation (600 dpi)
+arithmetic     : Pisano period, Legendre symbol, Frobenius trace (Numba JIT)
+pipeline       : Parallel prime processing and CSV streaming
+reporting      : Excel report generation and console summary
+figures        : Publication-ready figure generation (600 dpi)
 """
 
 __version__ = "1.0.0"
