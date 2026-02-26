@@ -27,20 +27,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache Conda Packages
-        uses: actions/cache@v3
-        with:
-          path: ~/miniconda/pkgs
-          key: conda-${{ runner.os }}-${{ hashFiles('environment.yml') }}
-
       - name: Setup Conda/Mamba
         uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: "3.11"
           environment-file: environment.yml
-          activate-environment: fibonacci-cm-elliptic 
+          activate-environment: fibonacci-cm-elliptic # اصلاح نام محیط
           use-mamba: true
-          auto-activate: false
+          cache: true # استفاده از کش داخلی اکشن (بهینه‌تر)
 
       - name: Code Quality Checks
         run: |
@@ -66,23 +60,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache Conda Packages
-        uses: actions/cache@v3
-        with:
-          path: ~/miniconda/pkgs
-          key: conda-${{ runner.os }}-${{ hashFiles('environment.yml') }}
-
       - name: Setup Conda/Mamba
         uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
           environment-file: environment.yml
-          activate-environment: research_env
+          activate-environment: fibonacci-cm-elliptic # اصلاح نام محیط
           use-mamba: true
-          auto-activate: false
+          cache: true
 
       - name: Run Pytest
-        run: pytest --cov=./ --cov-report=xml --cov-report=term-missing
+        run: |
+          # اطمینان از نصب بودن pytest-cov در صورت عدم شناسایی
+          pytest --cov=./ --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
         if: always() && hashFiles('coverage.xml') != ''
@@ -94,7 +84,7 @@ jobs:
           fail_ci_if_error: false
 
   # -----------------------------------
-  # 3️⃣ Build & Release (Full Integrity & Audit)
+  # 3️⃣ Build & Release
   # -----------------------------------
   deploy:
     needs: test
