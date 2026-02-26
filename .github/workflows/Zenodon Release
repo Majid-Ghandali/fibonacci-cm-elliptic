@@ -1,4 +1,86 @@
-  if: startsWith(github.ref, 'refs/tags/')
-  uses: zenodo/zenodo-github-action@v1.4.0
-  with:
-  zenodo_token: ${{ secrets.ZENODO_TOKEN }}
+name: Upload Paper and Research Artifacts to Zenodo
+
+on:
+  push:
+    tags:
+      - 'v*' # Production release on version tags
+    branches:
+      - main # Testing/Draft release on main branch
+  workflow_dispatch: # Allows manual trigger for testing
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    name: Prepare Publication Package
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the full history of the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Compile LaTeX document to PDF
+      # This handles BibTeX and cross-references automatically
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          args: "-pdf -interaction=nonstopmode -halt-on-error"
+
+      # 3. Create a clean publication package
+      - name: Bundle Research Artifacts (PDF, Source, Data, Code)
+        run: |
+          # Create a temporary staging directory
+          mkdir -p publication_bundle
+          
+          # A. Move the compiled PDF
+          if [ -f main.pdf ]; then
+            cp main.pdf publication_bundle/
+          else
+            echo "::error::Critical Error: main.pdf not found!"
+            exit 1
+          fi
+          
+          # B. Copy LaTeX source files recursively (maintaining structure)
+          find . -name "*.tex" -not -path "./publication_bundle/*" -exec cp --parents {} publication_bundle/ \;
+          
+          # C. Include essential research directories
+          # List of folders to include: data, code, appendix, images, figures
+          for folder in data code appendix images figures; do
+            if [ -d "$folder" ]; then
+              echo "Including $folder directory..."
+              cp -r "$folder" publication_bundle/
+            else
+              echo "Optional directory $folder not found, skipping."
+            fi
+          done
+
+          # D. Include Bibliography and Style files if they exist
+          find . -name "*.bib" -o -name "*.cls" -o -name "*.sty" -exec cp --parents {} publication_bundle/ \; 2>/dev/null || true
+
+          # E. Create the final ZIP (Packaging only the contents)
+          cd publication_bundle && zip -r ../research_package.zip . && cd ..
+
+      # 4. Upload to Zenodo
+      # Note: 'sandbox: true' for main branch tests, 'false' for official tags
+      - name: Publish to Zenodo
+        uses: zenodo/zenodo-github-action@v1.4.0
+        with:
+          zenodo_token: ${{ secrets.ZENODO_TOKEN }}
+          files: research_package.zip
+          title: "Research Artifacts: [Insert Your Paper Title]"
+          description: |
+            Automated publication of version ${{ github.ref_name }}.
+            This package includes:
+            - Final PDF Preprint
+            - LaTeX Source Files
+            - Research Data and Implementation Code
+            - Appendices and Supplementary Figures
+          creators: |
+            [
+              {"name": "Lastname, Firstname", "affiliation": "Your Institution"}
+            ]
+          # Logic: Use production Zenodo for tags, Sandbox for everything else
+          sandbox: ${{ !startsWith(github.ref, 'refs/tags/') }}
