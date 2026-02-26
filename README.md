@@ -1,6 +1,6 @@
 # fibonacci-cm-elliptic
 
-**Numerical verification of the identity $S_p = -a_p(E)$ for Fibonacci character sums and the CM elliptic curve $E: y^2 = x^3 - 4x$.**
+**Numerical verification of the identity $S_p = -a_p(E)$ for Fibonacci quadratic character sums and the CM elliptic curve $E: y^2 = x^3 - 4x$.**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -19,6 +19,18 @@
 $$S_p := \sum_{n=1}^{p+1} \chi(F_n \bmod p) = -a_p(E)$$
 
 where $\chi$ is the Legendre symbol mod $p$ and $a_p(E) = p+1 - \#E(\mathbb{F}_p)$ is the Frobenius trace of $E$.
+
+---
+
+## 🔬 Mathematical Context
+
+The curve $E: y^2 = x^3 - 4x$ has complex multiplication (CM) by $\mathbb{Z}[i]$.
+For primes $p$ inert in $\mathbb{Q}(\sqrt{5})$, the Fibonacci orbit spans the full
+norm-one torus $T(\mathbb{F}_{p^2})$, and the Frobenius at $p$ acts as complex
+conjugation — forcing $a_p(E) = 0$ (CM property) and making the character sum
+identity $S_p = -a_p(E)$ exact.
+This links quadratic residuosity in Fibonacci sequences, twisted character sums,
+and Frobenius traces of a CM elliptic curve.
 
 ---
 
@@ -84,7 +96,10 @@ import pandas as pd
 
 df = pd.read_csv("CM_Research_Outputs/Dataset_Raw_Primes.csv")
 inert = df[df["type"] == "inert"]
-assert (inert["a_p"] == 0).all()
+
+# Primary verification: CM property implies a_p = 0 for inert primes,
+# hence S_p = -a_p(E) = 0 exactly.
+assert (inert["a_p"] == 0).all(), "CM property violated!"
 print(f"Identity S_p = -a_p(E) verified for all {len(inert):,} inert primes.")
 ```
 
@@ -111,9 +126,9 @@ All computations verified for **148,932 primes**, $3 \le p \le 1{,}999{,}993$:
 | Split primes ($p \equiv 1 \pmod{4}$) | 74,416 |
 | Inert primes ($p \equiv 3 \pmod{4}$) | 74,516 |
 | CM property ($a_p = 0$ for all inert) | ✅ exact |
-| Empirical inert ratio | 0.500336 (theory: 0.500000) |
-| Chebotarev deviation | < 0.07% |
-| Max Weil ratio $|a_p|/(2\sqrt{p})$ | 0.999999 < 1 |
+| Empirical inert ratio | 0.500336 |
+| Chebotarev deviation $\|\rho_\text{inert} - 1/2\|$ | 0.000336 (0.0336%) |
+| Max Weil ratio $\|a_p\|/(2\sqrt{p})$ | 0.999999 (at $p = 1{,}996{,}573$, $a_p = 2826$) |
 | Runtime | ≈ 11 min (15 cores, Numba JIT) |
 
 ---
@@ -122,11 +137,11 @@ All computations verified for **148,932 primes**, $3 \le p \le 1{,}999{,}993$:
 
 | Figure | Description |
 |---|---|
-| `Fig1_Trace_Analysis.png` | Frobenius trace scatter: split vs inert primes |
-| `Fig2_SatoTate.png` | Empirical distribution vs CM Sato–Tate density |
-| `Fig3_Convergence.png` | Chebotarev density convergence to 1/2 |
+| `Fig1_Trace_Analysis.png` | Frobenius trace scatter: split vs inert primes, $p \le 1{,}999{,}993$ |
+| `Fig2_SatoTate.png` | Empirical distribution vs CM Sato–Tate density $\rho(x) = 1/(\pi\sqrt{4-x^2})$ |
+| `Fig3_Convergence.png` | Chebotarev density convergence to $\delta = 1/2$ |
 
-Pre-generated figures available in `data/figures/` (600 dpi, publication-ready).
+All figures are 600 dpi and publication-ready (pre-generated in `data/figures/`).
 
 ---
 
@@ -146,12 +161,6 @@ Pre-generated figures available in `data/figures/` (600 dpi, publication-ready).
 }
 ```
 
-**For CV / résumé:**
-> Ghandali, M. (2026). *Fibonacci CM Elliptic Curve Analysis*
-> (DOI: 10.5281/zenodo.18764803).
-> Numerical verification of CM elliptic curve identities
-> for 148,932 primes in the context of Fibonacci quadratic residuosity.
-
 ---
 
 ## ⚙️ Requirements
@@ -166,6 +175,15 @@ tqdm>=4.65
 openpyxl>=3.1
 pytest>=7.0
 ```
+
+---
+
+## 🎯 Design Principles
+
+- Reproducible computational mathematics
+- Large-scale verification with fault tolerance (resume/restart modes)
+- Strict adherence to arithmetic bounds (Hasse bound, Chebotarev density)
+- Clean separation of arithmetic core, pipeline, reporting, and figures
 
 ---
 
