@@ -1,22 +1,18 @@
-"""
-fibonacci-cm
-============
-Numerical verification of the identity  S_p = -a_p(E)  for the CM
-elliptic curve  E : y^2 = x^3 - 4x  and Fibonacci character sums.
-
-Reference
----------
-Ghandali, M. (2026). Quadratic Residuosity in Fibonacci Sequences:
-Arithmetic Structure via CM Elliptic Curves and Twisted Character Sums.
-
-Modules
--------
-arithmetic     : Pisano period, Legendre symbol, Frobenius trace (Numba JIT)
-pipeline       : Parallel prime processing and CSV streaming
-reporting      : Excel report generation and console summary
-figures        : Publication-ready figure generation (600 dpi)
-"""
-
-__version__ = "1.0.0"
-__author__  = "Majid Ghandali"
-__email__   = "majid.ghandali@gmail.com"
+name: fibonacci-cm-elliptic
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # نسخه پایتون را اینجا برداشتم تا ورک‌فلو بتواند ماتریکس را اعمال کند
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - pytest
+  - pytest-cov 
+  - mypy
+  - flake8
+  - pip
+  - pip:
+      - twine
+      - build
