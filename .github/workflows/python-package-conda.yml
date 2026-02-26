@@ -23,9 +23,16 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        shell: bash -l {0} 
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cache Conda Packages
+        uses: actions/cache@v3
+        with:
+          path: ~/miniconda/pkgs
+          key: conda-${{ runner.os }}-${{ hashFiles('environment.yml') }}
+
       - name: Setup Conda/Mamba
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -33,8 +40,7 @@ jobs:
           environment-file: environment.yml
           activate-environment: research_env
           use-mamba: true
-          cache: true
-          auto-activate-base: false
+          auto-activate: false
 
       - name: Code Quality Checks
         run: |
@@ -56,9 +62,16 @@ jobs:
         python-version: ["3.10", "3.11"]
     defaults:
       run:
-        shell: bash -l {0} 
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cache Conda Packages
+        uses: actions/cache@v3
+        with:
+          path: ~/miniconda/pkgs
+          key: conda-${{ runner.os }}-${{ hashFiles('environment.yml') }}
+
       - name: Setup Conda/Mamba
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -66,8 +79,7 @@ jobs:
           environment-file: environment.yml
           activate-environment: research_env
           use-mamba: true
-          cache: true
-          auto-activate-base: false
+          auto-activate: false
 
       - name: Run Pytest
         run: pytest --cov=./ --cov-report=xml --cov-report=term-missing
@@ -125,7 +137,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/* 
+          files: dist/*
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
