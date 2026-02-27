@@ -1,18 +1,37 @@
-name: fibonacci-cm-elliptic
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - python=3.11
-  - numpy
-  - scipy
-  - pandas
-  - matplotlib
-  - pytest
-  - mypy
-  - flake8
-  - pip
-  - pip:
-      - codecov
-      - twine
-      - build
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fibonacci-cm-elliptic"
+version = "0.1.0"
+description = "A production-hardened library for Fibonacci CM and Elliptic curve computations"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Majid", email = "majid@example.com" }]
+dependencies = [
+    "numpy",
+    "scipy",
+    "pandas",
+    "matplotlib",
+    "numba",   
+    "openpyxl" 
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "flake8",
+    "mypy",
+    "twine",
+    "build",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["fibonacci_cm*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"] 
