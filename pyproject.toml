@@ -36,6 +36,7 @@ include = ["fibonacci_cm"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+env = ["NUMBA_DISABLE_JIT=1"]
 
 [tool.mypy]
 python_version = "3.11"
