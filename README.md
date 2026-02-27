@@ -37,34 +37,36 @@ and Frobenius traces of a CM elliptic curve.
 
 ## 📁 Repository Structure
 
+```text 
 fibonacci-cm-elliptic/
 ├── .github/
-│ └── workflows/
-│ ├── ci.yml # Enterprise CI/CD: Matrix testing + Zenodo
-│ └── zenodo-release.yml # Automated DOI publication workflow
-├── src/
-│ └── fibonacci_cm/
-│ ├── init.py # Package initialization + metadata
-│ ├── arithmetic.py # Numba JIT: Pisano periods + Frobenius traces
-│ ├── pipeline.py # Parallel prime processing pipeline
-│ ├── reporting.py # Excel reports + statistical analysis
-│ └── figures.py # 600 DPI publication-ready figures
-├── tests/ # 13 research-grade unit tests ✓
-│ ├── test_arithmetic.py # Mathematical correctness validation
-│ ├── test_pipeline_figures_reporting.py # End-to-end pipeline tests
-│ └── test_properties.py # Algebraic invariants + properties
-├── paper/ # LaTeX manuscript (AMS-LaTeX standard)
-│ ├── fibonacci_paper_v2.tex # Main research article
-│ ├── supplementary_material.tex # Extended proofs + computational tables
-│ └── references.bib # 15 academic references (BibTeX)
-├── data/
-│ └── figures/ # Pre-rendered manuscript figures (600 DPI)
-├── main.py # CLI entry point (compute/plot/resume)
-├── pyproject.toml # PEP 621: Build system + metadata
-├── requirements.txt # pip install dependencies
-├── LICENSE # MIT License
-├── .gitignore
-└── README.md
+│   └── workflows/
+│       ├── ci.yml              # Enterprise CI/CD: Testing, coverage & build validation
+│       └── zenodo-release.yml  # Research Artifact Publishing: DOI integration
+├── src/                        # Production Source Root
+│   └── fibonacci_cm/
+│       ├── __init__.py         # Package initialization and metadata
+│       ├── arithmetic.py       # Core Arithmetic Engine: Pisano & Frobenius (Numba JIT)
+│       ├── pipeline.py         # Computational Pipeline: Parallel prime processing
+│       ├── reporting.py        # Analytical Reporting: Excel & statistical diagnostics
+│       └── figures.py          # Visualization Suite: 600 DPI publication plots
+├── tests/                      # Testing Suite
+│   ├── test_arithmetic.py      # Unit Tests: Math correctness & period verification
+│   ├── test_pipeline_figures_reporting.py  # Integration Tests: End-to-end validation
+│   └── test_properties.py      # Property-Based Testing: Algebraic invariants
+├── paper/                      # Scholarly Manuscript Source
+│   ├── fibonacci_paper_v2.tex  # Main Manuscript: AMS-standard LaTeX article
+│   ├── supplementary_material.tex  # Extended proofs and computational tables
+│   └── references.bib          # Bibliography: BibTeX academic references
+├── data/                       # Generated research data & CSVs
+├── figures/                    # Pre-rendered high-resolution figures for paper
+├── main.py                     # CLI Entry Point: Executes full pipeline
+├── pyproject.toml              # PEP 621 Configuration: Build system & metadata
+├── requirements.txt            # Legacy pip compatibility dependencies
+├── LICENSE                     # MIT License
+├── .gitignore                  # Git exclusion rules
+└── README.md                   # Project overview and research context
+```
 
 ---
 ## 🏗 Architecture Overview
