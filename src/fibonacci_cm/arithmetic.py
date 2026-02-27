@@ -136,6 +136,7 @@ def fast_ap_engine(p: int, qr_table: np.ndarray) -> int:
 # Per-prime computation entry point
 # ============================================================================
 
+
 def compute_prime_data(p: int) -> Dict:
     r"""
     Compute all arithmetic quantities for a single prime p.
