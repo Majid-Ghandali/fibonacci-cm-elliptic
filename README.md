@@ -75,98 +75,52 @@ fibonacci-cm-elliptic/
 
 flowchart TD
 
-%% =========================
-%% Global Styles
-%% =========================
-classDef ui fill:#f9f9f9,stroke:#ddd,stroke-dasharray:5 5,color:#000
-classDef engine fill:#f9f9f9,stroke:#ddd,stroke-dasharray:5 5,color:#000
-classDef qc fill:#fff0f0,stroke:#ffcccb,color:#000
-
-classDef cli fill:#E1F5FE,stroke:#01579B,color:#000
-classDef pipe fill:#E8F5E9,stroke:#2E7D32,color:#000
-classDef arith fill:#FFF3E0,stroke:#E65100,color:#000
-classDef csv fill:#F3E5F5,stroke:#7B1FA2,color:#000
-classDef report fill:#F1F8E9,stroke:#558B2F,color:#000
-classDef fig fill:#F1F8E9,stroke:#558B2F,color:#000
-classDef paper fill:#FFF9C4,stroke:#FBC02D,color:#000
-classDef ci fill:#FCE4EC,stroke:#C2185B,color:#000
-classDef test fill:#FCE4EC,stroke:#C2185B,color:#000
-classDef zenodo fill:#E0F2F1,stroke:#00695C,color:#000
-
-%% =========================
-%% User Interface
-%% =========================
+%% ===== User Interface =====
 subgraph User_Interface
-    CLI[main.py<br/>CLI Interface]
+    CLI[main.py - CLI Interface]
 end
-class User_Interface ui
-class CLI cli
+style User_Interface fill:#f2f2f2,stroke:#ccc
 
-%% =========================
-%% Execution Engine
-%% =========================
+%% ===== Execution Engine =====
 subgraph Execution_Engine
-    PIPE[pipeline.py<br/>Parallel Engine]
+    PIPE[pipeline.py - Parallel Engine]
 end
-class Execution_Engine engine
-class PIPE pipe
+style Execution_Engine fill:#f2f2f2,stroke:#ccc
 
-%% =========================
-%% Computational Core
-%% =========================
+%% ===== Computational Core =====
 subgraph Computational_Core
-    ARITH[arithmetic.py<br/>JIT Optimized]
+    ARITH[arithmetic.py - JIT Optimized]
 end
-class ARITH arith
 
-%% =========================
-%% Data Storage
-%% =========================
+%% ===== Data Storage =====
 subgraph Data_Storage
     CSV[(Prime Records CSV)]
 end
-class CSV csv
 
-%% =========================
-%% Analytics & Visuals
-%% =========================
+%% ===== Analytics & Visuals =====
 subgraph Analytics_Output
-    REPORT[reporting.py<br/>Excel Reports]
-    FIG[figures.py<br/>600dpi Plots]
+    REPORT[reporting.py - Excel Reports]
+    FIG[figures.py - 600dpi Plots]
 end
-class REPORT report
-class FIG fig
 
-%% =========================
-%% Publication
-%% =========================
+%% ===== Publication =====
 subgraph Publication
     PAPER[LaTeX Manuscript]
 end
-class PAPER paper
 
-%% =========================
-%% Quality Control
-%% =========================
+%% ===== Quality Control =====
 subgraph Quality_Control
     CI[GitHub Actions CI]
     TEST[Pytest Suite]
 end
-class Quality_Control qc
-class CI ci
-class TEST test
+style Quality_Control fill:#ffecec,stroke:#ffb3b3
 
-%% =========================
-%% Distribution
-%% =========================
+%% ===== Distribution =====
 subgraph Distribution
     ZENODO[Zenodo DOI Archive]
 end
-class ZENODO zenodo
 
-%% =========================
-%% Connections
-%% =========================
+%% ===== Connections =====
 CLI --> PIPE
 PIPE --> ARITH
 ARITH --> CSV
@@ -179,7 +133,7 @@ CI --> TEST
 TEST --> ZENODO
 
 PIPE -.-> TEST
-ARITH -.-> TEST
+ARITH -.-> TESTT
 ```
 ---
 ## ⚡ Quick Start
