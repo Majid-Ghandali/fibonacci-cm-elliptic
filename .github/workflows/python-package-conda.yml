@@ -71,9 +71,10 @@ jobs:
           cache: true
           auto-activate-base: false
 
-      # 🔹 کلید حل مشکل ModuleNotFoundError
       - name: Install Project in Editable Mode
-        run: pip install -e .
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . --no-build-isolation
 
       - name: Run Pytest
         run: pytest --cov=./ --cov-report=xml --cov-report=term-missing
