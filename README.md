@@ -41,31 +41,31 @@ and Frobenius traces of a CM elliptic curve.
 fibonacci-cm-elliptic/
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml              # Enterprise CI/CD: Testing, coverage & build validation
-│       └── zenodo-release.yml  # Research Artifact Publishing: DOI integration
-├── src/                        # Production Source Root
+│       ├── ci.yml                          # Enterprise CI/CD: Testing, coverage & build validation
+│       └── zenodo-release.yml              # Research Artifact Publishing: DOI integration
+├── src/                       
 │   └── fibonacci_cm/
-│       ├── __init__.py         # Package initialization and metadata
-│       ├── arithmetic.py       # Core Arithmetic Engine: Pisano & Frobenius (Numba JIT)
-│       ├── pipeline.py         # Computational Pipeline: Parallel prime processing
-│       ├── reporting.py        # Analytical Reporting: Excel & statistical diagnostics
-│       └── figures.py          # Visualization Suite: 600 DPI publication plots
-├── tests/                      # Testing Suite
-│   ├── test_arithmetic.py      # Unit Tests: Math correctness & period verification
+│       ├── __init__.py                     # Package initialization and metadata
+│       ├── arithmetic.py                   # Core Arithmetic Engine: Pisano & Frobenius (Numba JIT)
+│       ├── pipeline.py                     # Computational Pipeline: Parallel prime processing
+│       ├── reporting.py                    # Analytical Reporting: Excel & statistical diagnostics
+│       └── figures.py                      # Visualization Suite: 600 DPI publication plots
+├── tests/                                
+│   ├── test_arithmetic.py                  # Unit Tests: Math correctness & period verification
 │   ├── test_pipeline_figures_reporting.py  # Integration Tests: End-to-end validation
-│   └── test_properties.py      # Property-Based Testing: Algebraic invariants
-├── paper/                      # Scholarly Manuscript Source
-│   ├── fibonacci_paper_v2.tex  # Main Manuscript: AMS-standard LaTeX article
-│   ├── supplementary_material.tex  # Extended proofs and computational tables
-│   └── references.bib          # Bibliography: BibTeX academic references
-├── data/                       # Generated research data & CSVs
-├── figures/                    # Pre-rendered high-resolution figures for paper
-├── main.py                     # CLI Entry Point: Executes full pipeline
-├── pyproject.toml              # PEP 621 Configuration: Build system & metadata
-├── requirements.txt            # Legacy pip compatibility dependencies
-├── LICENSE                     # MIT License
-├── .gitignore                  # Git exclusion rules
-└── README.md                   # Project overview and research context
+│   └── test_properties.py                  # Property-Based Testing: Algebraic invariants
+├── paper/                      
+│   ├── fibonacci_paper_v2.tex              # Main Manuscript: AMS-standard LaTeX article
+│   ├── supplementary_material.tex          # Extended proofs and computational tables
+│   └── references.bib                      # Bibliography: BibTeX academic references
+├── data/                                   # Generated research data & CSVs
+├── figures/                                # Pre-rendered high-resolution figures for paper
+├── main.py                                 # CLI Entry Point: Executes full pipeline
+├── pyproject.toml                          # PEP 621 Configuration: Build system & metadata
+├── requirements.txt                        # Legacy pip compatibility dependencies
+├── LICENSE                                 # MIT License
+├── .gitignore                              # Git exclusion rules
+└── README.md                               # Project overview and research context
 ```
 
 ---
