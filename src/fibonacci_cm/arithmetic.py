@@ -91,84 +91,40 @@ def build_qr_table(p: int) -> np.ndarray:
     return table
 
 
-# ============================================================================
+# ============================================================================ 
 # Frobenius trace via character sum identity
 # ============================================================================
 
 @njit(fastmath=True, cache=True)
 def fast_ap_engine(p: int, qr_table: np.ndarray) -> int:
-    r"""
-    Compute the Frobenius trace a_p for E : y^2 = x^3 - 4x over F_p.
+    """
+    Compute the character sum S_p = sum_{t in F_p} chi(t^3 - 4t)
 
-    Uses the character sum identity proved in the paper (Theorem 1.3(iii)):
-
-        a_p(E) = sum_{t in F_p} chi(t^3 - 4t)
-
-    where chi is the Legendre symbol mod p, evaluated using the
-    precomputed quadratic residue table for O(p) performance.
-
-    CM property: for inert primes p ≡ 3 (mod 4), a_p = 0 exactly.
-
-    Parameters
-    ----------
-    p        : int           An odd prime.
-    qr_table : np.ndarray    Precomputed QR lookup table from build_qr_table(p).
-
-    Returns
-    -------
-    int
-        The Frobenius trace a_p(E). Satisfies |a_p| <= 2*sqrt(p) (Hasse bound).
+    Returns the raw sum S_p (not yet signed as Frobenius trace).
     """
     s_t = 0
     for t in range(p):
-        # اصلاح: افزودن عملگرهای ضرب برای ارزیابی صحیح چندجمله‌ای
         val = (t * t * t - 4 * t) % p
         if val == 0:
-            continue          # chi(0) = 0: point at infinity or cusp
+            continue
         s_t += 1 if qr_table[val] == 1 else -1
 
-    # اصلاح: برگرداندن علامت منفی به صورت علمی و صحیح.
-    # بر اساس a_p = p + 1 - #E ، مقدار a_13 از نظر ریاضی دقیقاً -6 است.
-    return -s_t
-
-
-# ============================================================================
+    return s_t  
+# ============================================================================ 
 # Per-prime computation entry point
 # ============================================================================
 
-
 def compute_prime_data(p: int) -> Dict:
-    r"""
-    Compute all arithmetic quantities for a single prime p.
-
-    This function is the unit of work dispatched to each worker process
-    in the parallel pipeline (see pipeline.py).
-
-    Parameters
-    ----------
-    p : int
-        A prime number >= 3.
-
-    Returns
-    -------
-    dict with keys:
-        p             : int    The prime.
-        type          : str    'split' (p ≡ 1 mod 4) or 'inert' (p ≡ 3 mod 4).
-        pisano_period : int    Pisano period pi(p).
-        a_p           : int    Frobenius trace; 0 for all inert primes.
-        norm_trace    : float  a_p / sqrt(p) in [-2, 2].
-        weil_ratio    : float  |a_p| / (2sqrt(p)) in [0, 1].
     """
+    Compute all arithmetic quantities for a single prime p.
+    """
+    qr_table = build_qr_table(p)
+    S_p      = fast_ap_engine(p, qr_table)  # raw character sum
 
-    qr_table   = build_qr_table(p)
+    # Frobenius trace according to Theorem 1.3
+    a_p = -S_p
 
-    # Character sum S_p
-    S_p        = fast_ap_engine(p, qr_table)
-
-    # Frobenius trace
-    a_p        = -S_p
-
-    sqrt_p     = np.sqrt(p)
+    sqrt_p = np.sqrt(p)
     pisano_len = get_pisano_period(p)
 
     return {
