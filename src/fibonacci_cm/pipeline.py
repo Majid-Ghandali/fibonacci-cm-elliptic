@@ -30,7 +30,7 @@ from tqdm import tqdm
 
 try:
     from .arithmetic import compute_prime_data
-except ImportError:
+except ImportError:  # pragma: no cover
     # Fallback for local development when package is not installed
     sys.path.append(str(Path(__file__).parent.parent))
     from fibonacci_cm.arithmetic import compute_prime_data
