@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.11"
           environment-file: environment.yml
-          activate-environment: fibonacci-cm-elliptic
+          activate-environment: fibonacci-cm-elliptic # اصلاح نام محیط
           use-mamba: true
           cache: true
           auto-activate-base: false
@@ -64,9 +64,9 @@ jobs:
       - name: Setup Conda/Mamba
         uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version }} # تزریق نسخه از ماتریکس
           environment-file: environment.yml
-          activate-environment: fibonacci-cm-elliptic
+          activate-environment: fibonacci-cm-elliptic # اصلاح نام محیط (یکسان سازی با YAML)
           use-mamba: true
           cache: true
           auto-activate-base: false
@@ -77,6 +77,7 @@ jobs:
           pip install -e . --no-build-isolation
 
       - name: Run Pytest
+        # حالا چون محیط درست فعال شده، pytest-cov شناسایی می‌شود
         run: pytest --cov=./ --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
