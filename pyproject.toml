@@ -5,28 +5,28 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fibonacci-cm-elliptic"
 version = "1.0.0"
-description = "A production-hardened library for Fibonacci CM and Elliptic curve computations"
+description = "Numerical verification of S_p = -a_p(E) for Fibonacci character sums and CM elliptic curves"
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "Majid", email = "majid.ghandali@gmail.com" }]
+authors = [{ name = "Majid Ghandali", email = "majid.ghandali@gmail.com" }]
 dependencies = [
-    "numpy",
-    "scipy",
-    "pandas",
-    "matplotlib",
-    "numba",
-    "openpyxl",
-    "sympy"
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "numba>=0.57",
+    "sympy>=1.12",
+    "matplotlib>=3.7",
+    "tqdm>=4.65",
+    "openpyxl>=3.1",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
+    "pytest>=7.0",
     "pytest-cov",
     "flake8",
     "mypy",
     "twine",
-    "build"
+    "build",
 ]
 
 [tool.setuptools.packages.find]
@@ -37,4 +37,6 @@ include = ["fibonacci_cm"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 
-
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
