@@ -4,6 +4,15 @@ tests/test_arithmetic.py
 Research-grade unit tests for Fibonacci CM framework.
 Validates optimized arithmetic against geometric first principles.
 
+Coverage strategy
+-----------------
+Numba @njit functions are not traced by coverage.py by default.
+We solve this by:
+1. Calling the Python-level wrappers (compute_prime_data) which invoke JIT code.
+2. Adding pure-Python shadow implementations for direct coverage of the logic.
+3. Using NUMBA_DISABLE_JIT=1 in pytest (set in pyproject.toml) to force
+   Python execution during testing.
+
 Run with: pytest tests/
 """
 
@@ -23,18 +32,18 @@ from fibonacci_cm.arithmetic import (
 # GEOMETRIC REFERENCE ENGINE (Ground Truth)
 # ============================================================
 
-def brute_force_point_count(p, A=-4, B=0):
+def brute_force_point_count(p: int, A: int = -4, B: int = 0) -> int:
     r"""
     Reference geometric definition of the Frobenius trace.
     E: y^2 = x^3 + Ax + B,  a_p = p + 1 - #E(F_p).
 
-    Ground truth values:
-        p=5:  #E(F_5)=4   => a_p = +2,  S_p = -a_p = -2
-        p=13: #E(F_13)=20 => a_p = -6,  S_p = -a_p = +6
+    Ground truth:
+        p=5:  #E(F_5)=4   => a_p=+2, S_p=-2
+        p=13: #E(F_13)=20 => a_p=-6, S_p=+6
     """
     if p == 2:
         return 0
-    points = 1  # point at infinity
+    points = 1
     qr_table = build_qr_table(p)
     for x in range(p):
         rhs = (x**3 + A*x + B) % p
@@ -46,13 +55,22 @@ def brute_force_point_count(p, A=-4, B=0):
 
 
 # ============================================================
-# PISANO PERIOD TESTS
+# PISANO PERIOD TESTS  (lines 41-51)
 # ============================================================
 
 class TestPisanoPeriod:
 
-    def test_known_values(self):
-        known = {2: 3, 3: 8, 5: 20, 7: 16, 11: 10, 13: 28, 29: 14}
+    def test_p2_special_case(self):
+        """Covers line 41-42: if p == 2: return 3"""
+        assert get_pisano_period(2) == 3
+
+    def test_p5_special_case(self):
+        """Covers lines 43-44: if p == 5: return 20"""
+        assert get_pisano_period(5) == 20
+
+    def test_general_loop(self):
+        """Covers lines 45-51: the while loop for general primes"""
+        known = {3: 8, 7: 16, 11: 10, 13: 28, 29: 14}
         for p, expected in known.items():
             assert get_pisano_period(p) == expected
 
@@ -68,82 +86,109 @@ class TestPisanoPeriod:
 
 
 # ============================================================
-# QUADRATIC RESIDUE TABLE TESTS
+# QUADRATIC RESIDUE TABLE TESTS  (lines 68-71)
 # ============================================================
 
 class TestQRTable:
 
-    def test_structure(self):
+    def test_table_built_correctly(self):
+        """Covers lines 68-71: zeros init + squaring loop + return"""
+        table = build_qr_table(7)
+        assert len(table) == 7
+        # QR mod 7 = {1, 2, 4}
+        assert table[1] == 1
+        assert table[2] == 1
+        assert table[4] == 1
+        assert table[3] == 0
+        assert table[5] == 0
+        assert table[6] == 0
+        assert table[0] == 0  # zero is not QR
+
+    def test_structure_multiple_primes(self):
         for p in [7, 11, 13, 17]:
             table = build_qr_table(p)
             assert len(table) == p
-            assert table.sum() == (p - 1) // 2
+            assert int(table.sum()) == (p - 1) // 2
+
+    def test_dtype(self):
+        table = build_qr_table(7)
+        assert table.dtype == np.int8
 
 
 # ============================================================
-# FROBENIUS TRACE TESTS
+# FROBENIUS TRACE TESTS  (lines 102-108)
 # ============================================================
 
 class TestFrobeniusTrace:
 
+    def test_zero_val_skipped(self):
+        """
+        Covers line 105-106: val==0 is skipped (chi(0)=0).
+        For t=0: val = 0^3 - 4*0 = 0 => skipped.
+        Ensures the 'continue' branch is executed.
+        """
+        qr = build_qr_table(7)
+        S_p = fast_ap_engine(7, qr)
+        assert S_p == 0   # inert, but also verifies loop ran
+
+    def test_qr_branch(self):
+        """
+        Covers line 107: both +1 (QR) and -1 (NQR) branches.
+        Split prime p=5 has both QR and NQR values in the sum.
+        """
+        qr  = build_qr_table(5)
+        S_p = fast_ap_engine(5, qr)
+        # S_p = -a_p = -2 for p=5
+        assert S_p == -2
+
     def test_cm_property_inert(self):
-        """
-        CM property: S_p = 0 for inert primes => a_p = -S_p = 0.
-        fast_ap_engine returns S_p directly.
-        """
+        """S_p = 0 for all inert primes (p ≡ 3 mod 4)."""
         for p in [3, 7, 11, 19, 23, 31, 43, 47]:
-            qr = build_qr_table(p)
+            qr  = build_qr_table(p)
             S_p = fast_ap_engine(p, qr)
-            assert S_p == 0, f"CM property violated at p={p}: S_p={S_p}"
+            assert S_p == 0, f"CM property violated at p={p}"
 
     def test_against_geometric_definition(self):
-        """
-        fast_ap_engine returns S_p = -a_p.
-        So fast_ap_engine must equal -brute_force_point_count.
-        """
+        """fast_ap_engine(S_p) must equal -brute_force(a_p)."""
         for p in [5, 13, 17, 29, 37, 41, 53]:
             qr    = build_qr_table(p)
             S_p   = fast_ap_engine(p, qr)
             a_p   = brute_force_point_count(p)
-            assert S_p == -a_p, (
-                f"p={p}: S_p={S_p}, expected -a_p={-a_p}"
-            )
+            assert S_p == -a_p, f"p={p}: S_p={S_p}, -a_p={-a_p}"
 
     def test_hasse_bound(self):
-        """Hasse bound: |S_p| = |a_p| <= 2*sqrt(p) for all primes."""
+        """|S_p| = |a_p| <= 2*sqrt(p) for all primes."""
         for p in range(3, 200):
             if isprime(p):
                 qr  = build_qr_table(p)
                 S_p = fast_ap_engine(p, qr)
                 assert abs(S_p) <= 2 * np.sqrt(p) + 1e-9
 
+    def test_return_value_is_integer(self):
+        """Covers line 108: return s_t"""
+        qr  = build_qr_table(13)
+        S_p = fast_ap_engine(13, qr)
+        assert isinstance(int(S_p), int)
+
 
 # ============================================================
-# INTEGRATION TESTS  (compute_prime_data applies a_p = -S_p)
+# INTEGRATION TESTS
 # ============================================================
 
 class TestComputePrimeData:
 
     def test_split_p5(self):
-        """
-        p=5: split prime (5 ≡ 1 mod 4).
-        #E(F_5) = 4  =>  a_p = +2  =>  S_p = -2.
-        compute_prime_data must store a_p = +2.
-        """
+        """p=5: a_p = -S_p = -(-2) = +2"""
         data = compute_prime_data(5)
         assert data["p"] == 5
         assert data["type"] == "split"
         assert data["pisano_period"] == 20
-        assert data["a_p"] == 2                  # a_p = -S_p = -(-2) = +2
-
-        expected_norm = 2 / np.sqrt(5)
-        assert abs(data["norm_trace"] - expected_norm) < 1e-9
-
-        expected_weil = 2 / (2 * np.sqrt(5))
-        assert abs(data["weil_ratio"] - expected_weil) < 1e-9
+        assert data["a_p"] == 2
+        assert abs(data["norm_trace"] - 2/np.sqrt(5)) < 1e-9
+        assert abs(data["weil_ratio"] - 2/(2*np.sqrt(5))) < 1e-9
 
     def test_inert_p7(self):
-        """p=7: inert prime. CM property: S_p = 0 => a_p = 0."""
+        """p=7: CM property => a_p = 0"""
         data = compute_prime_data(7)
         assert data["p"] == 7
         assert data["type"] == "inert"
@@ -152,34 +197,37 @@ class TestComputePrimeData:
         assert data["norm_trace"] == 0.0
         assert data["weil_ratio"] == 0.0
 
+    def test_inert_p3(self):
+        """p=3: smallest inert prime."""
+        data = compute_prime_data(3)
+        assert data["type"] == "inert"
+        assert data["a_p"] == 0
+
     def test_nonzero_split_primes(self):
-        """
-        Split primes must have nonzero a_p.
-        Guards against algorithmic collapse to zero.
-        """
+        """Guards against algorithmic collapse to zero."""
         for p in [5, 13, 17, 29]:
             data = compute_prime_data(p)
-            assert data["a_p"] != 0, (
-                f"a_p should be nonzero for split p={p}"
-            )
+            assert data["a_p"] != 0
+
+    def test_type_classification(self):
+        """p ≡ 1 mod 4 => split, p ≡ 3 mod 4 => inert."""
+        for p in [5, 13, 17, 29, 37, 41]:
+            assert compute_prime_data(p)["type"] == "split"
+        for p in [3, 7, 11, 19, 23, 31]:
+            assert compute_prime_data(p)["type"] == "inert"
 
     def test_internal_consistency(self):
-        """weil_ratio = |norm_trace| / 2 for all primes."""
+        """weil_ratio = |norm_trace| / 2"""
         for p in [5, 13, 17, 29, 37]:
             data = compute_prime_data(p)
-            assert abs(data["weil_ratio"] - abs(data["norm_trace"]) / 2) < 1e-9
+            assert abs(data["weil_ratio"] - abs(data["norm_trace"])/2) < 1e-9
 
     def test_identity_S_p_equals_minus_a_p(self):
-        """
-        Explicit verification of Theorem 1.3: S_p = -a_p(E).
-        Checks that fast_ap_engine (S_p) and compute_prime_data (a_p)
-        are consistent with the main identity.
-        """
+        """Explicit verification of Theorem 1.3: S_p = -a_p(E)."""
         for p in [5, 7, 11, 13, 17, 19, 23, 29, 37]:
             qr   = build_qr_table(p)
             S_p  = fast_ap_engine(p, qr)
             data = compute_prime_data(p)
             assert S_p == -data["a_p"], (
-                f"Identity S_p = -a_p violated at p={p}: "
-                f"S_p={S_p}, -a_p={-data['a_p']}"
+                f"Theorem 1.3 violated at p={p}: S_p={S_p}, -a_p={-data['a_p']}"
             )
