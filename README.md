@@ -70,8 +70,7 @@ fibonacci-cm-elliptic/
 
 ---
 
-### 🏗️ Architecture Overview
-
+```mermaid
 flowchart TB
     %% =========================
     %% USER INTERFACE LAYER
