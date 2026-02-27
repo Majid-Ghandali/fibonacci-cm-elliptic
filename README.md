@@ -74,68 +74,112 @@ fibonacci-cm-elliptic/
 
 
 flowchart TD
-    %% تعریف استایل کادرهای پس‌زمینه (subgraph)
-    style User_Interface fill:#f9f9f9,stroke:#ddd,stroke-dasharray: 5 5
-    style Execution_Engine fill:#f9f9f9,stroke:#ddd,stroke-dasharray: 5 5
-    style Quality_Control fill:#fff0f0,stroke:#ffcccb
 
-    %% استایل باکس‌ها (متن مشکی با color:#000)
-    style CLI fill:#E1F5FE,stroke:#01579B,color:#000
-    style PIPE fill:#E8F5E9,stroke:#2E7D32,color:#000
-    style ARITH fill:#FFF3E0,stroke:#E65100,color:#000
-    style CSV fill:#F3E5F5,stroke:#7B1FA2,color:#000
-    style REPORT fill:#F1F8E9,stroke:#558B2F,color:#000
-    style FIG fill:#F1F8E9,stroke:#558B2F,color:#000
-    style PAPER fill:#FFF9C4,stroke:#FBC02D,color:#000
-    style CI fill:#FCE4EC,stroke:#C2185B,color:#000
-    style TEST fill:#FCE4EC,stroke:#C2185B,color:#000
-    style ZENODO fill:#E0F2F1,stroke:#00695C,color:#000
+%% =========================
+%% Global Styles
+%% =========================
+classDef ui fill:#f9f9f9,stroke:#ddd,stroke-dasharray:5 5,color:#000
+classDef engine fill:#f9f9f9,stroke:#ddd,stroke-dasharray:5 5,color:#000
+classDef qc fill:#fff0f0,stroke:#ffcccb,color:#000
 
-    subgraph User_Interface [User Interface]
-        CLI[main.py CLI Interface]
-    end
+classDef cli fill:#E1F5FE,stroke:#01579B,color:#000
+classDef pipe fill:#E8F5E9,stroke:#2E7D32,color:#000
+classDef arith fill:#FFF3E0,stroke:#E65100,color:#000
+classDef csv fill:#F3E5F5,stroke:#7B1FA2,color:#000
+classDef report fill:#F1F8E9,stroke:#558B2F,color:#000
+classDef fig fill:#F1F8E9,stroke:#558B2F,color:#000
+classDef paper fill:#FFF9C4,stroke:#FBC02D,color:#000
+classDef ci fill:#FCE4EC,stroke:#C2185B,color:#000
+classDef test fill:#FCE4EC,stroke:#C2185B,color:#000
+classDef zenodo fill:#E0F2F1,stroke:#00695C,color:#000
 
-    subgraph Execution_Engine [Execution Engine]
-        PIPE[pipeline.py: Parallel Engine]
-    end
+%% =========================
+%% User Interface
+%% =========================
+subgraph User_Interface
+    CLI[main.py<br/>CLI Interface]
+end
+class User_Interface ui
+class CLI cli
 
-    subgraph Computational_Core [Computational Core]
-        ARITH[arithmetic.py: JIT Optimized]
-    end
+%% =========================
+%% Execution Engine
+%% =========================
+subgraph Execution_Engine
+    PIPE[pipeline.py<br/>Parallel Engine]
+end
+class Execution_Engine engine
+class PIPE pipe
 
-    subgraph Data_Storage [Data Storage]
-        CSV[(Prime Records CSV)]
-    end
+%% =========================
+%% Computational Core
+%% =========================
+subgraph Computational_Core
+    ARITH[arithmetic.py<br/>JIT Optimized]
+end
+class ARITH arith
 
-    subgraph Analytics_Output [Analytics & Visuals]
-        REPORT[reporting.py: Excel Reports]
-        FIG[figures.py: 600dpi Plots]
-    end
+%% =========================
+%% Data Storage
+%% =========================
+subgraph Data_Storage
+    CSV[(Prime Records CSV)]
+end
+class CSV csv
 
-    subgraph Publication [Publication]
-        PAPER[LaTeX Manuscript]
-    end
+%% =========================
+%% Analytics & Visuals
+%% =========================
+subgraph Analytics_Output
+    REPORT[reporting.py<br/>Excel Reports]
+    FIG[figures.py<br/>600dpi Plots]
+end
+class REPORT report
+class FIG fig
 
-    subgraph Quality_Control [Quality Control]
-        CI[GitHub Actions CI]
-        TEST[Pytest Suite]
-    end
+%% =========================
+%% Publication
+%% =========================
+subgraph Publication
+    PAPER[LaTeX Manuscript]
+end
+class PAPER paper
 
-    subgraph Distribution [Distribution]
-        ZENODO[Zenodo DOI Archive]
-    end
+%% =========================
+%% Quality Control
+%% =========================
+subgraph Quality_Control
+    CI[GitHub Actions CI]
+    TEST[Pytest Suite]
+end
+class Quality_Control qc
+class CI ci
+class TEST test
 
-    CLI --> PIPE
-    PIPE --> ARITH
-    ARITH --> CSV
-    CSV --> REPORT
-    CSV --> FIG
-    REPORT --> PAPER
-    FIG --> PAPER
-    CI --> TEST
-    TEST --> ZENODO
-    PIPE -.-> TEST
-    ARITH -.-> TEST
+%% =========================
+%% Distribution
+%% =========================
+subgraph Distribution
+    ZENODO[Zenodo DOI Archive]
+end
+class ZENODO zenodo
+
+%% =========================
+%% Connections
+%% =========================
+CLI --> PIPE
+PIPE --> ARITH
+ARITH --> CSV
+CSV --> REPORT
+CSV --> FIG
+REPORT --> PAPER
+FIG --> PAPER
+
+CI --> TEST
+TEST --> ZENODO
+
+PIPE -.-> TEST
+ARITH -.-> TEST
 ```
 ---
 ## ⚡ Quick Start
