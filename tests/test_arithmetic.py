@@ -24,7 +24,7 @@ from fibonacci_cm.arithmetic import (
 # ============================================================
 
 def brute_force_point_count(p, A=-4, B=0):
-    """
+    r"""
     Reference geometric definition of the Frobenius trace.
     E: y^2 = x^3 + Ax + B
     Returns a_p = p + 1 - #E(F_p)
