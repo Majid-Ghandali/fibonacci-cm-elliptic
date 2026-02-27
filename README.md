@@ -37,12 +37,14 @@ and Frobenius traces of a CM elliptic curve.
 
 ## 📁 Repository Structure
 
-```
+
 fibonacci-cm-elliptic/
 │
 ├── .github/workflows/
-│   └── python-package-conda.yml    # Enterprise CI/CD: Automated matrix testing, build integrity & Zenodo release
-│
+│    ├──── ci.yml                  # Enterprise CI/CD: Automated matrix testing, build integrity & Zenodo release
+│    └────                         # Zenodo release
+|
+|
 ├── src/                            # Source Root: Isolated environment for production-grade code
 │   └── fibonacci_cm/
 │       ├── __init__.py             # Package initialization and metadata
@@ -52,8 +54,10 @@ fibonacci-cm-elliptic/
 │       └── figures.py              # Visualization: Multi-panel publication-ready plots (600 dpi PNG/PDF)
 │
 ├── tests/
-│   └── test_arithmetic.py          # Unit Testing: 12 high-coverage pytest cases for mathematical correctness
-│
+│   ├──── test_arithmetic.py        # Unit Testing: 21 high-coverage pytest cases for mathematical correctness
+│   ├──── Test_pip_fig_rep·PY       # integration tests: 46 high-coverage tests for pipeline.py, figures.py, and reporting.py.
+│   └──── test_properties.py        # Property-based and invariant tests for the Fibonacci CM framework. 
+|
 ├── paper/                          # Scholarly Content: LaTeX source and bibliography
 │   ├── fibonacci_paper_v2.tex      # Main Manuscript: AMS-standard LaTeX document
 │   ├── supplementary_material.tex  # Appendices: Detailed proofs and additional computational tables
@@ -63,11 +67,10 @@ fibonacci-cm-elliptic/
 │   └── figures/                    # Artifacts: Pre-rendered high-resolution figures for the manuscript
 │
 ├── pyproject.toml                  # PEP 621 Config: Build-system requirements, project metadata, and tool settings
-├── environment.yml                 # Conda Environment: Deterministic dependency lock for research reproducibility
 ├── main.py                         # Application Entry: CLI interface for running the full computational pipeline
 ├── requirements.txt                # Legacy Compatibility: Pip-standard dependency list
 └── README.md                       # Documentation: Project overview, installation guide, and usage instructions
-```
+
 
 ---
 
