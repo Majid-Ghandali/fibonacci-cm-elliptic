@@ -42,7 +42,7 @@ fibonacci-cm-elliptic/
 │
 ├── .github/workflows/
 │    ├──── ci.yml                  # Enterprise CI/CD: Automated matrix testing, build integrity & Zenodo release
-│    └────                         # Zenodo release
+│    └──── Zenodon Release         # Add Zenodo publication workflow for research artifacts
 |
 |
 ├── src/                            # Source Root: Isolated environment for production-grade code
@@ -66,11 +66,12 @@ fibonacci-cm-elliptic/
 ├── data/
 │   └── figures/                    # Artifacts: Pre-rendered high-resolution figures for the manuscript
 │
-├── pyproject.toml                  # PEP 621 Config: Build-system requirements, project metadata, and tool settings
+├── .gitignore                      #
+├── licence                         #
+├── readme.md                       # Documentation: Project overview, installation guide, and usage instructions
 ├── main.py                         # Application Entry: CLI interface for running the full computational pipeline
-├── requirements.txt                # Legacy Compatibility: Pip-standard dependency list
-└── README.md                       # Documentation: Project overview, installation guide, and usage instructions
-
+├── pyproject.toml                  # PEP 621 Config: Build-system requirements, project metadata, and tool settings
+└── requirements.txt                # Legacy Compatibility: Pip-standard dependency list
 
 ---
 
