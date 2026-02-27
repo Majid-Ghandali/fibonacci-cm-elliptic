@@ -72,70 +72,70 @@ fibonacci-cm-elliptic/
 
 ```mermaid
 
-graph TB
+flowchart TD
+    %% تعریف مستقیم رنگ‌ها برای جلوگیری از خطا
+    style CLI fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style PIPE fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style ARITH fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style CSV fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style REPORT fill:#f1f8e9,stroke:#558b2f,stroke-width:1px
+    style FIG fill:#f1f8e9,stroke:#558b2f,stroke-width:1px
+    style PAPER fill:#fff9c4,stroke:#fbc02d,stroke-width:1px
+    style CI fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style TEST fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style ZENODO fill:#e0f2f1,stroke:#00695c,stroke-width:2px
 
-    classDef ui fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
-    classDef engine fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
-    classDef core fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
-    classDef data fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#7b1fa2
-    classDef test fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#c2185b
-    classDef output fill:#f1f8e9,stroke:#558b2f,stroke-width:2px,color:#558b2f
-
-
-    subgraph UI [ 💻 User Interface ]
-        CLI[main.py CLI Interface]:::ui
+    subgraph User_Interface [User Interface]
+        CLI[main.py CLI Interface]
     end
 
-    subgraph Exec [ ⚙️ Execution Engine ]
-        PIPE[pipeline.py: Parallel Engine]:::engine
+    subgraph Execution_Engine [Execution Engine]
+        PIPE[pipeline.py: Parallel Engine]
     end
 
-    subgraph Core [ 🔢 Computational Core ]
-        ARITH[arithmetic.py: JIT Optimized]:::core
+    subgraph Computational_Core [Computational Core]
+        ARITH[arithmetic.py: JIT Optimized]
     end
 
-    subgraph Storage [ 💾 Data Layer ]
-        CSV[(Prime Records CSV)]:::data
+    subgraph Data_Storage [Data Storage]
+        CSV[(Prime Records CSV)]
     end
 
-    subgraph Analytics [ 📊 Analytics & Visuals ]
-        REPORT[reporting.py: Excel]:::output
-        FIG[figures.py: 600dpi]:::output
+    subgraph Analytics_Output [Analytics & Visuals]
+        REPORT[reporting.py: Excel Reports]
+        FIG[figures.py: 600dpi Plots]
     end
 
-    subgraph Paper [ 📜 Scholarly Artifacts ]
-        DOCS[LaTeX Manuscript & Supp]:::output
+    subgraph Publication [Publication]
+        PAPER[LaTeX Manuscript]
     end
 
-    subgraph QA [ 🧪 Quality Assurance ]
-        CI[GitHub Actions]:::test
-        T1[Pytest Suite]:::test
-        T2[Coverage]:::test
+    subgraph Quality_Control [Quality Control]
+        CI[GitHub Actions CI]
+        TEST[Pytest Suite]
     end
 
-    subgraph Release [ 🚀 Open Science Release ]
-        ZENODO[Zenodo DOI & Archive]:::core
+    subgraph Distribution [Distribution]
+        ZENODO[Zenodo DOI Archive]
     end
- 
 
-    CLI  ==> PIPE
-    PIPE ==> ARITH
-    ARITH ==> CSV
-    CSV  ==> REPORT
-    CSV  ==> FIG
-    REPORT ==> DOCS
-    FIG    ==> DOCS
-
-  
-    CI --- T1
-    T1 --- T2
-    T2 ==> ZENODO
-
+    %% اتصالات با فلش‌های یکسان و منظم
+    CLI --> PIPE
+    PIPE --> ARITH
+    ARITH --> CSV
+    CSV --> REPORT
+    CSV --> FIG
+    REPORT --> PAPER
+    FIG --> PAPER
     
-    PIPE -.-> T1
-    ARITH -.-> T1
-    FIG   -.-> T1
+    %% بخش تست و توزیع
+    CI --> TEST
+    TEST --> ZENODO
 
+    %% خط‌چین برای نظارت
+    PIPE -.-> TEST
+    ARITH -.-> TEST
+    FIG -.-> TEST
 ```
 ---
 ## ⚡ Quick Start
