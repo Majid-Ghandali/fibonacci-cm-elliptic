@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fibonacci-cm-elliptic"
-version = "0.1.0"
+version = "1.0.0"
 description = "A production-hardened library for Fibonacci CM and Elliptic curve computations"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -36,4 +36,5 @@ include = ["fibonacci_cm"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
 
