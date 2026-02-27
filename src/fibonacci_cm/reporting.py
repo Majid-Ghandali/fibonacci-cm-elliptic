@@ -15,6 +15,7 @@ import pandas as pd
 
 
 def print_summary(df: pd.DataFrame) -> None:
+    df = df.copy()
     """
     Print a formatted summary of the computed dataset to stdout.
 
@@ -28,9 +29,19 @@ def print_summary(df: pd.DataFrame) -> None:
         Must contain columns: p, type_E, type_F5, pisano_period,
         S_p, a_p, weil_ratio.
     """
-    n_total    = len(df)
-    n_inert_E  = (df["type_E"]  == "inert_E").sum()
-    n_split_E  = (df["type_E"]  == "split_E").sum()
+     # ── Backward compatibility ──────────────────────────────
+    if "type_E" not in df.columns and "type" in df.columns:
+        df["type_E"] = df["type"]
+
+    if "type_F5" not in df.columns:
+        df["type_F5"] = "unknown"
+
+    if "S_p" not in df.columns:
+        df["S_p"] = -df.get("a_p", 0)
+    
+    n_total = len(df)
+    n_inert_E = (df["type_E"] == "inert_E").sum()
+    n_split_E = (df["type_E"] == "split_E").sum()
     n_inert_F5 = (df["type_F5"] == "inert_F5").sum()
 
     print("\n" + "-" * 58)
@@ -62,6 +73,7 @@ def print_summary(df: pd.DataFrame) -> None:
 
 
 def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
+    df = df.copy()
     """
     Write a two-sheet Excel workbook with raw data and summary statistics.
 
@@ -70,6 +82,16 @@ def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
     df        : pd.DataFrame   Full dataset (columns matching FIELDS).
     xlsx_path : str            Output path for the .xlsx file.
     """
+        # ── Backward compatibility ──────────────────────────────
+    if "type_E" not in df.columns and "type" in df.columns:
+        df["type_E"] = df["type"]
+
+    if "type_F5" not in df.columns:
+        df["type_F5"] = "unknown"
+
+    if "S_p" not in df.columns:
+        df["S_p"] = -df.get("a_p", 0)
+    
     n_total    = len(df)
     n_inert_E  = (df["type_E"]  == "inert_E").sum()
     n_split_E  = (df["type_E"]  == "split_E").sum()
