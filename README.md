@@ -69,72 +69,126 @@ fibonacci-cm-elliptic/
 ```
 
 ---
+## 🏗 Architecture Overview
 
 ```mermaid
+---
+config:
+  theme: forest  # Vibrant, happy colors for bright & joyful diagram
+---
 
+flowchart TB
 
-flowchart TD
+%% Define classes for consistent shapes and colors
+classDef ui fill:#A7F3D0,stroke:#065F46,stroke-width:2px,color:#065F46,font-weight:bold,border-radius:10px;  %% Green for UI - fresh and approachable
+classDef exec fill:#BFDBFE,stroke:#1E40AF,stroke-width:2px,color:#1E40AF,font-weight:bold,border-radius:10px;  %% Blue for Execution - calm and reliable
+classDef core fill:#FEF08A,stroke:#854D0E,stroke-width:2px,color:#854D0E,font-weight:bold,border-radius:10px;  %% Yellow for Core - energetic and bright
+classDef data fill:#D1FAE5,stroke:#065F46,stroke-width:2px,color:#065F46,font-weight:bold,border-radius:10px;  %% Light green for Data - natural growth
+classDef analytics fill:#FDE68A,stroke:#92400E,stroke-width:2px,color:#92400E,font-weight:bold,border-radius:10px;  %% Amber for Analytics - warm insights
+classDef output fill:#EDE9FE,stroke:#5B21B6,stroke-width:2px,color:#5B21B6,font-weight:bold,border-radius:10px;  %% Purple for Output - creative artifacts
+classDef cicd fill:#FED7AA,stroke:#9A3412,stroke-width:2px,color:#9A3412,font-weight:bold,border-radius:10px;  %% Orange for CI/CD - dynamic testing
+classDef release fill:#BBF7D0,stroke:#065F46,stroke-width:2px,color:#065F46,font-weight:bold,border-radius:10px;  %% Soft green for Release - open and shareable
 
-%% ===== User Interface =====
-subgraph User_Interface
-    CLI[main.py - CLI Interface]
+%% =========================
+%% USER INTERFACE LAYER
+%% =========================
+subgraph "UI Layer"
+    CLI[CLI Interface<br/>(main.py)]
 end
-style User_Interface fill:#f2f2f2,stroke:#ccc
+CLI:::ui
 
-%% ===== Execution Engine =====
-subgraph Execution_Engine
-    PIPE[pipeline.py - Parallel Engine]
+%% =========================
+%% EXECUTION LAYER
+%% =========================
+subgraph "Execution Engine"
+    PIPE[Parallel Processing<br/>(pipeline.py)]
 end
-style Execution_Engine fill:#f2f2f2,stroke:#ccc
+PIPE:::exec
 
-%% ===== Computational Core =====
-subgraph Computational_Core
-    ARITH[arithmetic.py - JIT Optimized]
+%% =========================
+%% CORE ARITHMETIC
+%% =========================
+subgraph "Computational Core"
+    ARITH[JIT Arithmetic<br/>(arithmetic.py)]
 end
+ARITH:::core
 
-%% ===== Data Storage =====
-subgraph Data_Storage
-    CSV[(Prime Records CSV)]
+%% =========================
+%% DATA LAYER
+%% =========================
+subgraph "Data Layer"
+    CSV[(Prime Data<br/>(CSV Files))]
 end
+CSV:::data
 
-%% ===== Analytics & Visuals =====
-subgraph Analytics_Output
-    REPORT[reporting.py - Excel Reports]
-    FIG[figures.py - 600dpi Plots]
+%% =========================
+%% ANALYTICS LAYER
+%% =========================
+subgraph "Analytics"
+    REPORT[Excel Reports<br/>(reporting.py)]
+    FIG[High-Res Figures<br/>(figures.py)]
 end
+REPORT:::analytics
+FIG:::analytics
 
-%% ===== Publication =====
-subgraph Publication
-    PAPER[LaTeX Manuscript]
+%% =========================
+%% RESEARCH OUTPUT
+%% =========================
+subgraph "Scholarly Artifacts"
+    PAPER[LaTeX Manuscript<br/>(paper/)]
+    SUPP[Supplementary<br/>(Material)]
 end
+PAPER:::output
+SUPP:::output
 
-%% ===== Quality Control =====
-subgraph Quality_Control
-    CI[GitHub Actions CI]
-    TEST[Pytest Suite]
+%% =========================
+%% CI / CD LAYER
+%% =========================
+subgraph "CI/CD Infrastructure"
+    CI[GitHub Actions<br/>(Matrix Testing)]
+    TEST[Pytest + Coverage]
+    BUILD[Build + Versioning]
 end
-style Quality_Control fill:#ffecec,stroke:#ffb3b3
+CI:::cicd
+TEST:::cicd
+BUILD:::cicd
 
-%% ===== Distribution =====
-subgraph Distribution
-    ZENODO[Zenodo DOI Archive]
+%% =========================
+%% RELEASE LAYER
+%% =========================
+subgraph "Open Science Release"
+    GHREL[GitHub Release<br/>(v1.0.0)]
+    ZENODO[Zenodo DOI<br/>(10.5281/zenodo.XXXX)]
 end
+GHREL:::release
+ZENODO:::release
 
-%% ===== Connections =====
-CLI --> PIPE
-PIPE --> ARITH
-ARITH --> CSV
-CSV --> REPORT
-CSV --> FIG
-REPORT --> PAPER
-FIG --> PAPER
+%% =========================
+%% FLOW CONNECTIONS
+%% =========================
+CLI -->|Input| PIPE
+PIPE -->|Compute| ARITH
+ARITH -->|Store| CSV
 
-CI --> TEST
-TEST --> ZENODO
+CSV -->|Analyze| REPORT
+CSV -->|Visualize| FIG
 
-PIPE -.-> TEST
-ARITH -.-> TESTT
+FIG -->|Include| PAPER
+REPORT -->|Attach| PAPER
+
+CI -->|Run| TEST
+TEST -->|Validate| BUILD
+BUILD -->|Deploy| GHREL
+GHREL -->|Archive| ZENODO
+
+PIPE -.->|Validated| TEST
+ARITH -.->|Unit Tests| TEST
+FIG -.->|Regression| TEST
+REPORT -.->|Validated| TEST
+
+linkStyle default stroke-width:2px,stroke:#4B5563,fill:none;
 ```
+
 ---
 ## ⚡ Quick Start
 
