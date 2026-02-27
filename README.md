@@ -69,99 +69,90 @@ fibonacci-cm-elliptic/
 ```
 
 ---
-## 🏗 Architecture Overview
 
-mermaid
+### 🏗️ Architecture Overview
+
 flowchart TB
+    %% =========================
+    %% USER INTERFACE LAYER
+    %% =========================
+    subgraph UI_Layer [User Interface]
+        CLI[main.py Interface]
+    end
 
-%% =========================
-%% USER INTERFACE LAYER
-%% =========================
-subgraph UI Layer
-    CLI[main.py<br/>CLI Interface]
-end
+    %% =========================
+    %% EXECUTION LAYER
+    %% =========================
+    subgraph Execution_Engine [Execution Engine]
+        PIPE[pipeline.py: Parallel Processing]
+    end
 
-%% =========================
-%% EXECUTION LAYER
-%% =========================
-subgraph Execution Engine
-    PIPE[pipeline.py<br/>Parallel Prime Processing]
-end
+    %% =========================
+    %% CORE ARITHMETIC
+    %% =========================
+    subgraph Computational_Core [Computational Core]
+        ARITH[arithmetic.py: Numba JIT Arithmetic]
+    end
 
-%% =========================
-%% CORE ARITHMETIC
-%% =========================
-subgraph Computational Core
-    ARITH[arithmetic.py<br/>Numba JIT CM Arithmetic]
-end
+    %% =========================
+    %% DATA LAYER
+    %% =========================
+    subgraph Data_Layer [Data Layer]
+        CSV[(Prime Data CSV)]
+    end
 
-%% =========================
-%% DATA LAYER
-%% =========================
-subgraph Data Layer
-    CSV[(Prime Data CSV)]
-end
+    %% =========================
+    %% ANALYTICS LAYER
+    %% =========================
+    subgraph Analytics [Analytics & Visualization]
+        REPORT[reporting.py: Excel Reports]
+        FIG[figures.py: 600dpi Figures]
+    end
 
-%% =========================
-%% ANALYTICS LAYER
-%% =========================
-subgraph Analytics
-    REPORT[reporting.py<br/>Excel Reports]
-    FIG[figures.py<br/>600dpi Figures PNG/PDF]
-end
+    %% =========================
+    %% RESEARCH OUTPUT
+    %% =========================
+    subgraph Scholarly_Artifacts [Scholarly Artifacts]
+        PAPER[LaTeX Manuscript]
+        SUPP[Supplementary Material]
+    end
 
-%% =========================
-%% RESEARCH OUTPUT
-%% =========================
-subgraph Scholarly Artifacts
-    PAPER[paper/ LaTeX Manuscript]
-    SUPP[Supplementary Material]
-end
+    %% =========================
+    %% CI / CD LAYER
+    %% =========================
+    subgraph CICD [CI/CD Infrastructure]
+        CI[GitHub Actions Matrix]
+        TEST[Pytest + Coverage]
+        BUILD[Build Integrity]
+    end
 
-%% =========================
-%% CI / CD LAYER
-%% =========================
-subgraph CI/CD Infrastructure
-    CI[GitHub Actions<br/>Matrix Testing]
-    TEST[Pytest + Coverage]
-    BUILD[Build + Versioning]
-end
+    %% =========================
+    %% RELEASE LAYER
+    %% =========================
+    subgraph Release [Open Science Release]
+        GHREL[GitHub Release]
+        ZENODO[Zenodo DOI: 10.5281/zenodo.18764803]
+    end
 
-%% =========================
-%% RELEASE LAYER
-%% =========================
-subgraph Open Science Release
-    GHREL[GitHub Release v1.0.0]
-    ZENODO[Zenodo DOI<br/>10.5281/zenodo.18764803]
-end
+    %% =========================
+    %% FLOW CONNECTIONS
+    %% =========================
+    CLI --> PIPE
+    PIPE --> ARITH
+    ARITH --> CSV
+    CSV --> REPORT
+    CSV --> FIG
+    FIG --> PAPER
+    REPORT --> PAPER
+    CI --> TEST
+    TEST --> BUILD
+    BUILD --> GHREL
+    GHREL --> ZENODO
 
-%% =========================
-%% FLOW CONNECTIONS
-%% =========================
-
-CLI --> PIPE
-PIPE --> ARITH
-ARITH --> CSV
-
-CSV --> REPORT
-CSV --> FIG
-
-FIG --> PAPER
-REPORT --> PAPER
-
-CI --> TEST
-TEST --> BUILD
-BUILD --> GHREL
-GHREL --> ZENODO
-
-PIPE -. validated by .-> TEST
-ARITH -. unit tested .-> TEST
-FIG -. regression tested .-> TEST
-REPORT -. validated .-> TEST
-
-
-
-
+    PIPE -.->|validated by| TEST
+    ARITH -.->|unit tested| TEST
+    FIG -.->|regression tested| TEST
+    REPORT -.->|validated| TEST
 ---
 ## ⚡ Quick Start
 
