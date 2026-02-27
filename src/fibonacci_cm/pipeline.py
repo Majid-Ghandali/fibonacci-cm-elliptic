@@ -38,7 +38,16 @@ except ImportError:  # pragma: no cover
 # ---------------------------------------------------------------------------
 # Dataset schema — canonical column order throughout the project
 # ---------------------------------------------------------------------------
-FIELDS       = ["p", "type", "pisano_period", "a_p", "norm_trace", "weil_ratio"]
+FIELDS = [
+    "p",
+    "type_E",       # inert_E / split_E  — CM dichotomy in Q(i),    p mod 4
+    "type_F5",      # inert_F5 / split_F5 — Fibonacci field Q(sqrt(5)), p mod 5
+    "pisano_period",
+    "S_p",          # raw character sum; S_p = -a_p  (Theorem 1.3)
+    "a_p",          # Frobenius trace a_p(E) = -S_p
+    "norm_trace",
+    "weil_ratio",
+]
 CSV_FILENAME = "Dataset_Raw_Primes.csv"
 
 
