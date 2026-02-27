@@ -71,87 +71,70 @@ fibonacci-cm-elliptic/
 ---
 
 ```mermaid
-flowchart TB
-    %% =========================
-    %% USER INTERFACE LAYER
-    %% =========================
-    subgraph UI_Layer [User Interface]
-        CLI[main.py Interface]
+
+graph TB
+
+    classDef ui fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
+    classDef engine fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
+    classDef core fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
+    classDef data fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#7b1fa2
+    classDef test fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#c2185b
+    classDef output fill:#f1f8e9,stroke:#558b2f,stroke-width:2px,color:#558b2f
+
+
+    subgraph UI [ 💻 User Interface ]
+        CLI[main.py CLI Interface]:::ui
     end
 
-    %% =========================
-    %% EXECUTION LAYER
-    %% =========================
-    subgraph Execution_Engine [Execution Engine]
-        PIPE[pipeline.py: Parallel Processing]
+    subgraph Exec [ ⚙️ Execution Engine ]
+        PIPE[pipeline.py: Parallel Engine]:::engine
     end
 
-    %% =========================
-    %% CORE ARITHMETIC
-    %% =========================
-    subgraph Computational_Core [Computational Core]
-        ARITH[arithmetic.py: Numba JIT Arithmetic]
+    subgraph Core [ 🔢 Computational Core ]
+        ARITH[arithmetic.py: JIT Optimized]:::core
     end
 
-    %% =========================
-    %% DATA LAYER
-    %% =========================
-    subgraph Data_Layer [Data Layer]
-        CSV[(Prime Data CSV)]
+    subgraph Storage [ 💾 Data Layer ]
+        CSV[(Prime Records CSV)]:::data
     end
 
-    %% =========================
-    %% ANALYTICS LAYER
-    %% =========================
-    subgraph Analytics [Analytics & Visualization]
-        REPORT[reporting.py: Excel Reports]
-        FIG[figures.py: 600dpi Figures]
+    subgraph Analytics [ 📊 Analytics & Visuals ]
+        REPORT[reporting.py: Excel]:::output
+        FIG[figures.py: 600dpi]:::output
     end
 
-    %% =========================
-    %% RESEARCH OUTPUT
-    %% =========================
-    subgraph Scholarly_Artifacts [Scholarly Artifacts]
-        PAPER[LaTeX Manuscript]
-        SUPP[Supplementary Material]
+    subgraph Paper [ 📜 Scholarly Artifacts ]
+        DOCS[LaTeX Manuscript & Supp]:::output
     end
 
-    %% =========================
-    %% CI / CD LAYER
-    %% =========================
-    subgraph CICD [CI/CD Infrastructure]
-        CI[GitHub Actions Matrix]
-        TEST[Pytest + Coverage]
-        BUILD[Build Integrity]
+    subgraph QA [ 🧪 Quality Assurance ]
+        CI[GitHub Actions]:::test
+        T1[Pytest Suite]:::test
+        T2[Coverage]:::test
     end
 
-    %% =========================
-    %% RELEASE LAYER
-    %% =========================
-    subgraph Release [Open Science Release]
-        GHREL[GitHub Release]
-        ZENODO[Zenodo DOI: 10.5281/zenodo.18764803]
+    subgraph Release [ 🚀 Open Science Release ]
+        ZENODO[Zenodo DOI & Archive]:::core
     end
+ 
 
-    %% =========================
-    %% FLOW CONNECTIONS
-    %% =========================
-    CLI --> PIPE
-    PIPE --> ARITH
-    ARITH --> CSV
-    CSV --> REPORT
-    CSV --> FIG
-    FIG --> PAPER
-    REPORT --> PAPER
-    CI --> TEST
-    TEST --> BUILD
-    BUILD --> GHREL
-    GHREL --> ZENODO
+    CLI  ==> PIPE
+    PIPE ==> ARITH
+    ARITH ==> CSV
+    CSV  ==> REPORT
+    CSV  ==> FIG
+    REPORT ==> DOCS
+    FIG    ==> DOCS
 
-    PIPE -.->|validated by| TEST
-    ARITH -.->|unit tested| TEST
-    FIG -.->|regression tested| TEST
-    REPORT -.->|validated| TEST
+  
+    CI --- T1
+    T1 --- T2
+    T2 ==> ZENODO
+
+    
+    PIPE -.-> T1
+    ARITH -.-> T1
+    FIG   -.-> T1
 
 ```
 ---
