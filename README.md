@@ -72,96 +72,78 @@ fibonacci-cm-elliptic/
 ## 🏗 Architecture Overview
 
 ```mermaid
----
-config:
-  theme: forest  # Vibrant, happy colors for bright & joyful diagram
----
-
 flowchart TB
 
-%% Define classes for consistent shapes and colors
-classDef ui fill:#A7F3D0,stroke:#065F46,stroke-width:2px,color:#065F46,font-weight:bold,border-radius:10px;  %% Green for UI - fresh and approachable
-classDef exec fill:#BFDBFE,stroke:#1E40AF,stroke-width:2px,color:#1E40AF,font-weight:bold,border-radius:10px;  %% Blue for Execution - calm and reliable
-classDef core fill:#FEF08A,stroke:#854D0E,stroke-width:2px,color:#854D0E,font-weight:bold,border-radius:10px;  %% Yellow for Core - energetic and bright
-classDef data fill:#D1FAE5,stroke:#065F46,stroke-width:2px,color:#065F46,font-weight:bold,border-radius:10px;  %% Light green for Data - natural growth
-classDef analytics fill:#FDE68A,stroke:#92400E,stroke-width:2px,color:#92400E,font-weight:bold,border-radius:10px;  %% Amber for Analytics - warm insights
-classDef output fill:#EDE9FE,stroke:#5B21B6,stroke-width:2px,color:#5B21B6,font-weight:bold,border-radius:10px;  %% Purple for Output - creative artifacts
-classDef cicd fill:#FED7AA,stroke:#9A3412,stroke-width:2px,color:#9A3412,font-weight:bold,border-radius:10px;  %% Orange for CI/CD - dynamic testing
-classDef release fill:#BBF7D0,stroke:#065F46,stroke-width:2px,color:#065F46,font-weight:bold,border-radius:10px;  %% Soft green for Release - open and shareable
+%% تنظیمات رنگی شاد و زنده (بدون کاما برای جلوگیری از خطا)
+classDef ui fill:#A7F3D0,stroke:#065F46,stroke-width:2px,color:#000,font-weight:bold
+classDef exec fill:#BFDBFE,stroke:#1E40AF,stroke-width:2px,color:#000,font-weight:bold
+classDef core fill:#FEF08A,stroke:#854D0E,stroke-width:2px,color:#000,font-weight:bold
+classDef data fill:#D1FAE5,stroke:#065F46,stroke-width:2px,color:#000,font-weight:bold
+classDef analytics fill:#FDE68A,stroke:#92400E,stroke-width:2px,color:#000,font-weight:bold
+classDef output fill:#EDE9FE,stroke:#5B21B6,stroke-width:2px,color:#000,font-weight:bold
+classDef cicd fill:#FED7AA,stroke:#9A3412,stroke-width:2px,color:#000,font-weight:bold
+classDef release fill:#BBF7D0,stroke:#065F46,stroke-width:2px,color:#000,font-weight:bold
 
 %% =========================
 %% USER INTERFACE LAYER
 %% =========================
-subgraph "UI Layer"
-    CLI[CLI Interface<br/>(main.py)]
+subgraph UI_Layer [UI Layer]
+    CLI[CLI Interface<br/>main.py]:::ui
 end
-CLI:::ui
 
 %% =========================
 %% EXECUTION LAYER
 %% =========================
-subgraph "Execution Engine"
-    PIPE[Parallel Processing<br/>(pipeline.py)]
+subgraph Execution_Engine [Execution Engine]
+    PIPE[Parallel Processing<br/>pipeline.py]:::exec
 end
-PIPE:::exec
 
 %% =========================
 %% CORE ARITHMETIC
 %% =========================
-subgraph "Computational Core"
-    ARITH[JIT Arithmetic<br/>(arithmetic.py)]
+subgraph Computational_Core [Computational Core]
+    ARITH[JIT Arithmetic<br/>arithmetic.py]:::core
 end
-ARITH:::core
 
 %% =========================
 %% DATA LAYER
 %% =========================
-subgraph "Data Layer"
-    CSV[(Prime Data<br/>(CSV Files))]
+subgraph Data_Layer [Data Layer]
+    CSV[(Prime Data<br/>CSV Files)]:::data
 end
-CSV:::data
 
 %% =========================
 %% ANALYTICS LAYER
 %% =========================
-subgraph "Analytics"
-    REPORT[Excel Reports<br/>(reporting.py)]
-    FIG[High-Res Figures<br/>(figures.py)]
+subgraph Analytics [Analytics]
+    REPORT[Excel Reports<br/>reporting.py]:::analytics
+    FIG[High-Res Figures<br/>figures.py]:::analytics
 end
-REPORT:::analytics
-FIG:::analytics
 
 %% =========================
 %% RESEARCH OUTPUT
 %% =========================
-subgraph "Scholarly Artifacts"
-    PAPER[LaTeX Manuscript<br/>(paper/)]
-    SUPP[Supplementary<br/>(Material)]
+subgraph Scholarly_Artifacts [Scholarly Artifacts]
+    PAPER[LaTeX Manuscript<br/>paper/]:::output
+    SUPP[Supplementary<br/>Material]:::output
 end
-PAPER:::output
-SUPP:::output
 
 %% =========================
 %% CI / CD LAYER
 %% =========================
-subgraph "CI/CD Infrastructure"
-    CI[GitHub Actions<br/>(Matrix Testing)]
-    TEST[Pytest + Coverage]
-    BUILD[Build + Versioning]
+subgraph CICD_Infrastructure [CI/CD Infrastructure]
+    CI[GitHub Actions<br/>Matrix Testing]:::cicd
+    TEST[Pytest + Coverage]:::cicd
+    BUILD[Build + Versioning]:::cicd
 end
-CI:::cicd
-TEST:::cicd
-BUILD:::cicd
 
 %% =========================
 %% RELEASE LAYER
 %% =========================
-subgraph "Open Science Release"
-    GHREL[GitHub Release<br/>(v1.0.0)]
-    ZENODO[Zenodo DOI<br/>(10.5281/zenodo.XXXX)]
+subgraph Release_Layer [Open Science Release]
+    GHREL[GitHub Release<br/>v1.0.0]:::release
+    ZENODO[Zenodo DOI<br/>10.5281/zenodo.18764803]:::release
 end
-GHREL:::release
-ZENODO:::release
 
 %% =========================
 %% FLOW CONNECTIONS
@@ -186,7 +168,9 @@ ARITH -.->|Unit Tests| TEST
 FIG -.->|Regression| TEST
 REPORT -.->|Validated| TEST
 
-linkStyle default stroke-width:2px,stroke:#4B5563,fill:none;
+%% استایل فلش‌ها
+linkStyle default stroke:#4B5563,stroke-width:2px;
+
 ```
 
 ---
