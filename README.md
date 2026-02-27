@@ -40,41 +40,193 @@ and Frobenius traces of a CM elliptic curve.
 
 fibonacci-cm-elliptic/
 │
-├── .github/workflows/
-│    ├──── ci.yml                  # Enterprise CI/CD: Automated matrix testing, build integrity & Zenodo release
-│    └──── Zenodon Release         # Add Zenodo publication workflow for research artifacts
-|
-|
-├── src/                            # Source Root: Isolated environment for production-grade code
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       │   # Enterprise CI/CD:
+│       │   # Cross-platform matrix testing, coverage enforcement,
+│       │   # build integrity validation, and automated Zenodo release
+│       │
+│       └── zenodo-release.yml
+│           # Research Artifact Publishing:
+│           # Automated archival publication workflow (DOI integration)
+│
+├── src/                               # Production Source Root
 │   └── fibonacci_cm/
-│       ├── __init__.py             # Package initialization and metadata
-│       ├── arithmetic.py           # Core Arithmetic: Pisano periods, QR tables, and Frobenius traces (Numba JIT optimized)
-│       ├── pipeline.py             # Data Pipeline: Parallel prime processing and fault-tolerant CSV streaming
-│       ├── reporting.py            # Analytics: Excel-based report generation and console summaries
-│       └── figures.py              # Visualization: Multi-panel publication-ready plots (600 dpi PNG/PDF)
+│       ├── __init__.py
+│       │   # Package initialization and metadata
+│       │
+│       ├── arithmetic.py
+│       │   # Core Arithmetic Engine:
+│       │   # Pisano periods, quadratic residue tables,
+│       │   # Frobenius traces (Numba JIT optimized)
+│       │
+│       ├── pipeline.py
+│       │   # Computational Pipeline:
+│       │   # Parallel prime processing,
+│       │   # fault-tolerant CSV streaming,
+│       │   # high-performance batch evaluation
+│       │
+│       ├── reporting.py
+│       │   # Analytical Reporting:
+│       │   # Excel-based structured reports,
+│       │   # console summaries and statistical diagnostics
+│       │
+│       └── figures.py
+│           # Visualization Suite:
+│           # Multi-panel publication-ready plots
+│           # (600 DPI PNG/PDF output)
 │
 ├── tests/
-│   ├──── test_arithmetic.py        # Unit Testing: 21 high-coverage pytest cases for mathematical correctness
-│   ├──── Test_pip_fig_rep·PY       # integration tests: 46 high-coverage tests for pipeline.py, figures.py, and reporting.py.
-│   └──── test_properties.py        # Property-based and invariant tests for the Fibonacci CM framework. 
-|
-├── paper/                          # Scholarly Content: LaTeX source and bibliography
-│   ├── fibonacci_paper_v2.tex      # Main Manuscript: AMS-standard LaTeX document
-│   ├── supplementary_material.tex  # Appendices: Detailed proofs and additional computational tables
-│   └── references.bib              # Bibliography: Managed BibTeX entries for academic citations
+│   ├── test_arithmetic.py
+│   │   # Unit Tests:
+│   │   # Mathematical correctness validation
+│   │   # Frobenius trace & Pisano period verification
+│   │
+│   ├── test_pipeline_figures_reporting.py
+│   │   # Integration Tests:
+│   │   # End-to-end pipeline validation,
+│   │   # artifact generation, and reporting consistency
+│   │
+│   └── test_properties.py
+│       # Property-Based Testing:
+│       # Algebraic invariants and structural identities
+│       # within the Fibonacci CM framework
+│
+├── paper/                              # Scholarly Manuscript Source
+│   ├── fibonacci_paper_v2.tex
+│   │   # Main Manuscript:
+│   │   # AMS-standard LaTeX research article
+│   │
+│   ├── supplementary_material.tex
+│   │   # Supplementary Material:
+│   │   # Extended proofs, computational tables,
+│   │   # and theoretical elaborations
+│   │
+│   └── references.bib
+│       # Bibliography:
+│       # BibTeX-managed academic references
 │
 ├── data/
-│   └── figures/                    # Artifacts: Pre-rendered high-resolution figures for the manuscript
+│   └── figures/
+│       # Pre-rendered high-resolution figures
+│       # used in the manuscript
 │
-├── .gitignore                      #
-├── licence                         #
-├── readme.md                       # Documentation: Project overview, installation guide, and usage instructions
-├── main.py                         # Application Entry: CLI interface for running the full computational pipeline
-├── pyproject.toml                  # PEP 621 Config: Build-system requirements, project metadata, and tool settings
-└── requirements.txt                # Legacy Compatibility: Pip-standard dependency list
+├── main.py
+│   # CLI Entry Point:
+│   # Executes full computational pipeline
+│
+├── pyproject.toml
+│   # PEP 621 Configuration:
+│   # Build system, project metadata,
+│   # linting and testing configuration
+│
+├── requirements.txt
+│   # Legacy pip compatibility dependencies
+│
+├── LICENSE
+│   # MIT License
+│
+├── .gitignore
+│
+└── README.md
+    # Project overview, installation guide,
+    # research context and usage instructions
+---
+## 🏗 Architecture Overview
+
+mermaid
+flowchart TB
+
+%% =========================
+%% USER INTERFACE LAYER
+%% =========================
+subgraph UI Layer
+    CLI[main.py<br/>CLI Interface]
+end
+
+%% =========================
+%% EXECUTION LAYER
+%% =========================
+subgraph Execution Engine
+    PIPE[pipeline.py<br/>Parallel Prime Processing]
+end
+
+%% =========================
+%% CORE ARITHMETIC
+%% =========================
+subgraph Computational Core
+    ARITH[arithmetic.py<br/>Numba JIT CM Arithmetic]
+end
+
+%% =========================
+%% DATA LAYER
+%% =========================
+subgraph Data Layer
+    CSV[(Prime Data CSV)]
+end
+
+%% =========================
+%% ANALYTICS LAYER
+%% =========================
+subgraph Analytics
+    REPORT[reporting.py<br/>Excel Reports]
+    FIG[figures.py<br/>600dpi Figures PNG/PDF]
+end
+
+%% =========================
+%% RESEARCH OUTPUT
+%% =========================
+subgraph Scholarly Artifacts
+    PAPER[paper/ LaTeX Manuscript]
+    SUPP[Supplementary Material]
+end
+
+%% =========================
+%% CI / CD LAYER
+%% =========================
+subgraph CI/CD Infrastructure
+    CI[GitHub Actions<br/>Matrix Testing]
+    TEST[Pytest + Coverage]
+    BUILD[Build + Versioning]
+end
+
+%% =========================
+%% RELEASE LAYER
+%% =========================
+subgraph Open Science Release
+    GHREL[GitHub Release v1.0.0]
+    ZENODO[Zenodo DOI<br/>10.5281/zenodo.18764803]
+end
+
+%% =========================
+%% FLOW CONNECTIONS
+%% =========================
+
+CLI --> PIPE
+PIPE --> ARITH
+ARITH --> CSV
+
+CSV --> REPORT
+CSV --> FIG
+
+FIG --> PAPER
+REPORT --> PAPER
+
+CI --> TEST
+TEST --> BUILD
+BUILD --> GHREL
+GHREL --> ZENODO
+
+PIPE -. validated by .-> TEST
+ARITH -. unit tested .-> TEST
+FIG -. regression tested .-> TEST
+REPORT -. validated .-> TEST
+
+
+
 
 ---
-
 ## ⚡ Quick Start
 
 ### 1. Clone and install
