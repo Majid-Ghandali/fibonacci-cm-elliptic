@@ -23,15 +23,23 @@ where $\chi$ is the Legendre symbol mod $p$ and $a_p(E) = p+1 - \\#E(\mathbb{F}_
 
 ---
 
-## 🔬 Mathematical Context
+## 🔬 Mathematical Clarification: Two Notions of "Inert"
 
-The curve $E: y^2 = x^3 - 4x$ has complex multiplication (CM) by $\mathbb{Z}[i]$.
-For primes $p$ inert in $\mathbb{Q}(\sqrt{5})$, the Fibonacci orbit spans the full
-norm-one torus $T(\mathbb{F}_{p^2})$, and the Frobenius at $p$ acts as complex
-conjugation — forcing $a_p(E) = 0$ (CM property) and making the character sum
-identity $S_p = -a_p(E)$ exact.
-This links quadratic residuosity in Fibonacci sequences, twisted character sums,
-and Frobenius traces of a CM elliptic curve.
+This project involves **two distinct arithmetic notions of inert primes**, which must be clearly separated:
+
+| Concept | Field | Arithmetic Condition | Role in the Paper |
+|---------|-------|---------------------|-------------------|
+| Inert in $\mathbb{Q}(\sqrt{5})$ | Fibonacci field | $p \equiv \pm 2 \pmod{5}$ | Hypothesis of Theorem 1.3 (torus orbit structure) |
+| Inert in $\mathbb{Q}(i)$ | CM field of $E$ | $p \equiv 3 \pmod{4}$ | CM property: $a_p(E) = 0$ |
+
+These conditions are **independent**. For example:
+
+- $p = 13$: inert in $\mathbb{Q}(\sqrt{5})$ since $13 \equiv 3 \pmod{5}$ ✔, but **split** in $\mathbb{Q}(i)$ since $13 \equiv 1 \pmod{4}$, hence $a_{13}(E) = -2 \neq 0$. Nevertheless $S_{13} = 2 = -a_{13}(E)$ ✔
+- $p = 7$: inert in $\mathbb{Q}(\sqrt{5})$ since $7 \equiv 2 \pmod{5}$ ✔, and also inert in $\mathbb{Q}(i)$ since $7 \equiv 3 \pmod{4}$, hence $a_7(E) = 0$ and $S_7 = 0$ ✔
+
+The identity $S_p = -a_p(E)$ holds for all primes inert in $\mathbb{Q}(\sqrt{5})$, regardless of whether $a_p(E)$ vanishes. The vanishing $a_p(E) = 0$ occurs only when $p$ is additionally inert in $\mathbb{Q}(i)$.
+
+In the dataset, the columns `type_E` and `type_F5` track these two conditions separately (see §Dataset Schema).
 
 ---
 
@@ -74,7 +82,9 @@ fibonacci-cm-elliptic/
 ```mermaid
 flowchart TB
 
-%% تنظیمات رنگی شاد و زنده (بدون کاما برای جلوگیری از خطا)
+%% =========================
+%% Color settings
+%% =========================
 classDef ui fill:#A7F3D0,stroke:#065F46,stroke-width:2px,color:#000,font-weight:bold
 classDef exec fill:#BFDBFE,stroke:#1E40AF,stroke-width:2px,color:#000,font-weight:bold
 classDef core fill:#FEF08A,stroke:#854D0E,stroke-width:2px,color:#000,font-weight:bold
@@ -181,7 +191,7 @@ linkStyle default stroke:#4B5563,stroke-width:2px;
 ```bash
 git clone https://github.com/Majid-Ghandali/fibonacci-cm-elliptic.git
 cd fibonacci-cm-elliptic
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ### 2. Run the computation
@@ -190,40 +200,34 @@ pip install -r requirements.txt
 python main.py
 ```
 
-You will be prompted:
-
-```
-[Mode] Choose execution mode:
-  (1) RESUME  : Continue from the last saved prime.
-  (2) RESTART : Clear existing data and start fresh.
-  (3) PLOT    : Regenerate figures from existing dataset.
-
-Upper bound for primes (default: 100000):
-```
-
 ### 3. Verify the main identity
 
 ```python
 import pandas as pd
 
 df = pd.read_csv("CM_Research_Outputs/Dataset_Raw_Primes.csv")
-inert = df[df["type"] == "inert"]
 
-# Primary verification: CM property implies a_p = 0 for inert primes,
-# hence S_p = -a_p(E) = 0 exactly.
-assert (inert["a_p"] == 0).all(), "CM property violated!"
-print(f"Identity S_p = -a_p(E) verified for all {len(inert):,} inert primes.")
+# ── CM property: a_p = 0 for primes inert in Q(i) ────────────────────────────
+inert_E = df[df["type_E"] == "inert_E"]
+assert (inert_E["a_p"] == 0).all(), "CM property violated!"
+print(f"CM property verified for {len(inert_E):,} primes inert in Q(i).")
+
+# ── Theorem 1.3: S_p = -a_p for primes inert in Q(sqrt(5)) ───────────────────
+inert_F5 = df[df["type_F5"] == "inert_F5"]
+assert (inert_F5["S_p"] == -inert_F5["a_p"]).all(), "Theorem 1.3 violated!"
+print(f"Theorem 1.3 verified for {len(inert_F5):,} primes inert in Q(sqrt(5)).")
 ```
 
 Expected output:
 ```
-Identity S_p = -a_p(E) verified for all 74,516 inert primes.
+CM property verified for 74,516 primes inert in Q(i).
+Theorem 1.3 verified for 74,965 primes inert in Q(sqrt(5)).
 ```
 
 ### 4. Run tests
 
 ```bash
-pytest tests/ -v
+pytest tests/ -v --cov=src/
 ```
 
 ---
@@ -286,16 +290,17 @@ matplotlib>=3.7
 tqdm>=4.65
 openpyxl>=3.1
 pytest>=7.0
+hypothesis>=6.0
 ```
 
 ---
 
 ## 🎯 Design Principles
 
-- Reproducible computational mathematics
+- Strict separation of the two inertness conditions (`type_E` vs `type_F5`)
+- Reproducible computational mathematics with 100% test coverage
 - Large-scale verification with fault tolerance (resume/restart modes)
 - Strict adherence to arithmetic bounds (Hasse bound, Chebotarev density)
-- Clean separation of arithmetic core, pipeline, reporting, and figures
 
 ---
 
