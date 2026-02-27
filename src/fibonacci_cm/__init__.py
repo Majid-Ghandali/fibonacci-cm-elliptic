@@ -1,17 +1,9 @@
-name: fibonacci-cm-elliptic
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - numpy
-  - scipy
-  - pandas
-  - matplotlib
-  - pytest
-  - pytest-cov 
-  - mypy
-  - flake8
-  - pip
-  - pip:
-      - twine
-      - build
+"""
+Fibonacci CM Analysis Package
+=============================
+Author: Majid
+Version: 1.0.0
+"""
+
+__version__ = "1.0.0"
+__author__ = "Majid"
