@@ -28,7 +28,7 @@ OUTPUT_DIR = Path("CM_Research_Outputs")
 XLSX_PATH  = OUTPUT_DIR / "CM_Statistical_Report.xlsx"
 
 def main() -> None:
-    """Main orchestrator for the Fibonacci-CM research suite."""
+    r"""Main orchestrator for the Fibonacci-CM research suite."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     print("=" * 65)
