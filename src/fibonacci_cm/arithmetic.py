@@ -30,7 +30,7 @@ from typing import Dict
 
 @njit(fastmath=True, cache=True)
 def get_pisano_period(p: int) -> int:
-    """
+    r"""
     Return the Pisano period pi(p).
 
     The Pisano period is the smallest positive integer k such that
@@ -53,7 +53,6 @@ def get_pisano_period(p: int) -> int:
     if p == 5:
         return 20
     prev, curr = 0, 1
-    # اصلاح: افزودن عملگر ضرب برای کران بالا p^2 + 1
     for period in range(1, p * p + 1):
         prev, curr = curr, (prev + curr) % p
         if prev == 0 and curr == 1:
@@ -67,7 +66,7 @@ def get_pisano_period(p: int) -> int:
 
 @njit(fastmath=True, cache=True)
 def build_qr_table(p: int) -> np.ndarray:
-    """
+    r"""
     Build a lookup table for quadratic residues modulo p.
 
     table[v] = 1  if v is a non-zero quadratic residue mod p,
@@ -98,7 +97,7 @@ def build_qr_table(p: int) -> np.ndarray:
 
 @njit(fastmath=True, cache=True)
 def fast_ap_engine(p: int, qr_table: np.ndarray) -> int:
-    """
+    r"""
     Compute the Frobenius trace a_p for E : y^2 = x^3 - 4x over F_p.
 
     Uses the character sum identity proved in the paper (Theorem 1.3(iii)):
@@ -138,7 +137,7 @@ def fast_ap_engine(p: int, qr_table: np.ndarray) -> int:
 # ============================================================================
 
 def compute_prime_data(p: int) -> Dict:
-    """
+    r"""
     Compute all arithmetic quantities for a single prime p.
 
     This function is the unit of work dispatched to each worker process
