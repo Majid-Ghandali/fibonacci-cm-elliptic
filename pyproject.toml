@@ -15,7 +15,8 @@ dependencies = [
     "pandas",
     "matplotlib",
     "numba",   
-    "openpyxl" 
+    "openpyxl",
+    "sympy"
 ]
 
 [project.optional-dependencies]
@@ -25,15 +26,13 @@ dev = [
     "flake8",
     "mypy",
     "twine",
-    "build",
-    "`sympy",
+    "build"
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["fibonacci_cm*"]
+include = ["fibonacci_cm"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"] 
-
+pythonpath = ["src"]
