@@ -26,6 +26,7 @@ dev = [
     "mypy",
     "twine",
     "build",
+    "`sympy",
 ]
 
 [tool.setuptools.packages.find]
@@ -35,3 +36,4 @@ include = ["fibonacci_cm*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"] 
+
