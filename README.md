@@ -152,6 +152,8 @@ flowchart TB
     ARITH -.->|unit tested| TEST
     FIG -.->|regression tested| TEST
     REPORT -.->|validated| TEST
+
+```
 ---
 ## ⚡ Quick Start
 
