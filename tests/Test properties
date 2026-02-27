@@ -1,0 +1,334 @@
+r"""
+tests/test_properties.py
+========================
+Property-based and invariant tests for the Fibonacci CM framework.
+
+These tests go beyond coverage — they verify that the mathematical
+STRUCTURE claimed in the paper holds for arbitrary inputs.
+
+Three levels
+------------
+1. Property-based tests (Hypothesis)
+   Verify algebraic invariants for randomly sampled primes.
+
+2. Invariant checks
+   Structural properties that must hold for ALL primes universally.
+
+3. Stress tests
+   Verify the main identity for large primes near the paper's range.
+
+Mathematical claims under test
+------------------------------
+- Theorem 1.3 : S_p = -a_p(E) for all inert primes p > 5
+- CM property : a_p = 0 for all p ≡ 3 (mod 4)
+- Hasse bound : |a_p| < 2*sqrt(p) for all primes
+- Chebotarev  : inert density converges to 1/2
+- QR symmetry : exactly (p-1)/2 quadratic residues mod p
+"""
+
+import numpy as np
+import pytest
+from sympy import isprime, nextprime
+from hypothesis import given, settings, assume
+from hypothesis import strategies as st
+
+from fibonacci_cm.arithmetic import (
+    get_pisano_period,
+    build_qr_table,
+    fast_ap_engine,
+    compute_prime_data,
+)
+
+
+# ============================================================
+# HYPOTHESIS PROPERTY-BASED TESTS
+# ============================================================
+
+class TestPropertiesHypothesis:
+
+    @given(st.integers(min_value=3, max_value=500))
+    @settings(max_examples=100)
+    def test_hasse_bound_arbitrary_primes(self, n):
+        """
+        Property: |a_p| < 2*sqrt(p) for ALL primes (Hasse 1936).
+        Hypothesis samples arbitrary integers and filters to primes.
+        """
+        assume(isprime(n))
+        data = compute_prime_data(n)
+        assert abs(data["a_p"]) <= 2 * np.sqrt(n) + 1e-9, (
+            f"Hasse bound violated: p={n}, |a_p|={abs(data['a_p'])}, "
+            f"2√p={2*np.sqrt(n):.4f}"
+        )
+
+    @given(st.integers(min_value=3, max_value=500))
+    @settings(max_examples=100)
+    def test_cm_property_arbitrary_inert(self, n):
+        """
+        Property: a_p = 0 for ALL inert primes (p ≡ 3 mod 4).
+        This is the core CM property — must hold universally.
+        """
+        assume(isprime(n) and n % 4 == 3)
+        data = compute_prime_data(n)
+        assert data["a_p"] == 0, (
+            f"CM property violated: p={n}, a_p={data['a_p']}"
+        )
+
+    @given(st.integers(min_value=3, max_value=500))
+    @settings(max_examples=100)
+    def test_weil_ratio_in_unit_interval(self, n):
+        """
+        Property: weil_ratio = |a_p|/(2√p) ∈ [0, 1) for all primes.
+        """
+        assume(isprime(n))
+        data = compute_prime_data(n)
+        assert 0.0 <= data["weil_ratio"] < 1.0 + 1e-9, (
+            f"Weil ratio out of bounds: p={n}, ratio={data['weil_ratio']}"
+        )
+
+    @given(st.integers(min_value=3, max_value=500))
+    @settings(max_examples=100)
+    def test_norm_trace_in_weil_interval(self, n):
+        """
+        Property: norm_trace = a_p/√p ∈ [-2, 2] for all primes.
+        """
+        assume(isprime(n))
+        data = compute_prime_data(n)
+        assert -2.0 - 1e-9 <= data["norm_trace"] <= 2.0 + 1e-9, (
+            f"Norm trace out of [-2,2]: p={n}, norm={data['norm_trace']}"
+        )
+
+    @given(st.integers(min_value=3, max_value=500))
+    @settings(max_examples=100)
+    def test_type_classification_correct(self, n):
+        """
+        Property: type is exactly determined by p mod 4.
+        p ≡ 1 (mod 4) → split, p ≡ 3 (mod 4) → inert.
+        """
+        assume(isprime(n))
+        data = compute_prime_data(n)
+        if n % 4 == 1:
+            assert data["type"] == "split"
+        else:
+            assert data["type"] == "inert"
+
+    @given(st.integers(min_value=3, max_value=200))
+    @settings(max_examples=60)
+    def test_qr_table_symmetry(self, n):
+        """
+        Property: exactly (p-1)/2 quadratic residues mod any odd prime p.
+        Fundamental consequence of Fermat's little theorem.
+        """
+        assume(isprime(n))
+        table = build_qr_table(n)
+        assert int(table.sum()) == (n - 1) // 2, (
+            f"QR count wrong: p={n}, got {table.sum()}, expected {(n-1)//2}"
+        )
+
+    @given(st.integers(min_value=3, max_value=200))
+    @settings(max_examples=60)
+    def test_pisano_period_positive(self, n):
+        """
+        Property: Pisano period is always a positive integer.
+        """
+        assume(isprime(n))
+        pi = get_pisano_period(n)
+        assert pi > 0
+        assert isinstance(pi, (int, np.integer))
+
+    @given(st.integers(min_value=3, max_value=200))
+    @settings(max_examples=60)
+    def test_S_p_equals_minus_a_p(self, n):
+        """
+        Property: Theorem 1.3 — S_p = -a_p(E) for ALL primes.
+        This is the central identity of the paper.
+        """
+        assume(isprime(n))
+        qr   = build_qr_table(n)
+        S_p  = fast_ap_engine(n, qr)
+        data = compute_prime_data(n)
+        assert S_p == -data["a_p"], (
+            f"Theorem 1.3 violated: p={n}, S_p={S_p}, -a_p={-data['a_p']}"
+        )
+
+
+# ============================================================
+# STRUCTURAL INVARIANT CHECKS
+# ============================================================
+
+class TestInvariants:
+
+    # First 50 primes for exhaustive invariant checking
+    PRIMES_50 = [p for p in range(3, 230) if isprime(p)][:50]
+
+    def test_inert_split_partition(self):
+        """
+        Invariant: every prime is either split or inert — never both, never neither.
+        The sets {p ≡ 1 mod 4} and {p ≡ 3 mod 4} partition all odd primes.
+        """
+        for p in self.PRIMES_50:
+            data = compute_prime_data(p)
+            assert data["type"] in ("split", "inert"), (
+                f"Invalid type '{data['type']}' for p={p}"
+            )
+            assert (p % 4 == 1) == (data["type"] == "split")
+
+    def test_cm_property_all_inert(self):
+        """
+        Invariant: a_p = 0 for ALL inert primes (complete verification).
+        If this fails, the CM structure of E: y^2=x^3-4x is wrong.
+        """
+        inert = [p for p in self.PRIMES_50 if p % 4 == 3]
+        for p in inert:
+            data = compute_prime_data(p)
+            assert data["a_p"] == 0, f"CM violated at p={p}"
+
+    def test_a_p_integer_valued(self):
+        """
+        Invariant: a_p must be an integer for all primes.
+        (Frobenius trace is always an algebraic integer.)
+        """
+        for p in self.PRIMES_50:
+            data = compute_prime_data(p)
+            assert data["a_p"] == int(data["a_p"]), (
+                f"a_p not integer: p={p}, a_p={data['a_p']}"
+            )
+
+    def test_norm_trace_formula_consistency(self):
+        """
+        Invariant: norm_trace = a_p / sqrt(p) exactly.
+        """
+        for p in self.PRIMES_50:
+            data = compute_prime_data(p)
+            expected = data["a_p"] / np.sqrt(p)
+            assert abs(data["norm_trace"] - expected) < 1e-10, (
+                f"norm_trace formula wrong at p={p}"
+            )
+
+    def test_weil_ratio_formula_consistency(self):
+        """
+        Invariant: weil_ratio = |a_p| / (2*sqrt(p)) exactly.
+        """
+        for p in self.PRIMES_50:
+            data = compute_prime_data(p)
+            expected = abs(data["a_p"]) / (2.0 * np.sqrt(p))
+            assert abs(data["weil_ratio"] - expected) < 1e-10
+
+    def test_chebotarev_density_first_50(self):
+        """
+        Invariant: inert/split ratio converges toward 1/2 (Chebotarev).
+        For first 50 primes, ratio should be within 10% of 0.5.
+        """
+        results = [compute_prime_data(p) for p in self.PRIMES_50]
+        n_inert = sum(1 for r in results if r["type"] == "inert")
+        ratio   = n_inert / len(results)
+        assert abs(ratio - 0.5) < 0.10, (
+            f"Chebotarev density far from 1/2: ratio={ratio:.4f}"
+        )
+
+    def test_pisano_divides_p_squared_minus_1(self):
+        """
+        Invariant: pi(p) | p^2 - 1 for all primes p ≠ 5.
+        Classical result: Fibonacci period divides the order of GL(2, F_p).
+        """
+        for p in self.PRIMES_50:
+            if p == 5:
+                continue
+            pi_p = get_pisano_period(p)
+            assert (p * p - 1) % pi_p == 0, (
+                f"pi(p) ∤ p²-1: p={p}, pi(p)={pi_p}"
+            )
+
+    def test_qr_table_zero_at_zero(self):
+        """
+        Invariant: table[0] = 0 for all primes (0 is not a QR by convention).
+        """
+        for p in [7, 11, 13, 17, 19, 23]:
+            table = build_qr_table(p)
+            assert table[0] == 0, f"table[0] ≠ 0 for p={p}"
+
+
+# ============================================================
+# STRESS TESTS — large primes near paper range
+# ============================================================
+
+class TestStress:
+
+    # Large primes near the paper's verification range (p ≤ 1,999,993)
+    LARGE_PRIMES = [
+        999_983,    # large inert prime (≡ 3 mod 4)
+        999_979,    # large split prime (≡ 1 mod 4) — verify: 999979 % 4
+        1_999_993,  # largest prime in dataset
+        1_999_979,  # second largest
+        100_003,    # medium range
+    ]
+
+    @pytest.mark.parametrize("p", LARGE_PRIMES)
+    def test_hasse_bound_large_primes(self, p):
+        """
+        Stress: Hasse bound holds for large primes near paper's range.
+        """
+        if not isprime(p):
+            pytest.skip(f"{p} is not prime")
+        data = compute_prime_data(p)
+        assert abs(data["a_p"]) <= 2 * np.sqrt(p) + 1e-6, (
+            f"Hasse violated: p={p}, |a_p|={abs(data['a_p'])}"
+        )
+
+    @pytest.mark.parametrize("p", LARGE_PRIMES)
+    def test_cm_property_large_inert(self, p):
+        """
+        Stress: CM property holds for large inert primes.
+        """
+        if not isprime(p):
+            pytest.skip(f"{p} is not prime")
+        data = compute_prime_data(p)
+        if data["type"] == "inert":
+            assert data["a_p"] == 0, (
+                f"CM violated at large p={p}"
+            )
+
+    @pytest.mark.parametrize("p", LARGE_PRIMES)
+    def test_theorem_1_3_large_primes(self, p):
+        """
+        Stress: Theorem 1.3 (S_p = -a_p) holds for large primes.
+        This directly validates the paper's main numerical claim
+        at the boundary of the verification range.
+        """
+        if not isprime(p):
+            pytest.skip(f"{p} is not prime")
+        qr   = build_qr_table(p)
+        S_p  = fast_ap_engine(p, qr)
+        data = compute_prime_data(p)
+        assert S_p == -data["a_p"], (
+            f"Theorem 1.3 failed at p={p}: S_p={S_p}, -a_p={-data['a_p']}"
+        )
+
+    def test_max_weil_ratio_paper_claim(self):
+        """
+        Stress: verify the paper's claim that max Weil ratio = 0.999999
+        is attained at p = 1,996,573 with a_p = 2826.
+        """
+        p = 1_996_573
+        assert isprime(p), "p=1,996,573 must be prime"
+        data = compute_prime_data(p)
+        assert data["a_p"] == 2826, (
+            f"Max Weil prime: expected a_p=2826, got {data['a_p']}"
+        )
+        weil = abs(data["a_p"]) / (2 * np.sqrt(p))
+        assert abs(weil - 0.999999) < 1e-4, (
+            f"Weil ratio at max prime: expected ≈0.999999, got {weil:.6f}"
+        )
+
+    def test_chebotarev_convergence_100_primes(self):
+        """
+        Stress: inert ratio among first 100 primes is within 5% of 0.5.
+        Quantitative Chebotarev density test.
+        """
+        primes_100 = [p for p in range(3, 550) if isprime(p)][:100]
+        results    = [compute_prime_data(p) for p in primes_100]
+        n_inert    = sum(1 for r in results if r["type"] == "inert")
+        ratio      = n_inert / len(results)
+        assert abs(ratio - 0.5) < 0.05, (
+            f"Chebotarev: expected ratio ≈0.5, got {ratio:.4f} "
+            f"over {len(results)} primes"
+        )
