@@ -72,18 +72,24 @@ fibonacci-cm-elliptic/
 
 ```mermaid
 
+
 flowchart TD
-    %% تعریف مستقیم رنگ‌ها برای جلوگیری از خطا
-    style CLI fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    style PIPE fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    style ARITH fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    style CSV fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    style REPORT fill:#f1f8e9,stroke:#558b2f,stroke-width:1px
-    style FIG fill:#f1f8e9,stroke:#558b2f,stroke-width:1px
-    style PAPER fill:#fff9c4,stroke:#fbc02d,stroke-width:1px
-    style CI fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    style TEST fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    style ZENODO fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    %% تعریف استایل کادرهای پس‌زمینه (subgraph)
+    style User_Interface fill:#f9f9f9,stroke:#ddd,stroke-dasharray: 5 5
+    style Execution_Engine fill:#f9f9f9,stroke:#ddd,stroke-dasharray: 5 5
+    style Quality_Control fill:#fff0f0,stroke:#ffcccb
+
+    %% استایل باکس‌ها (متن مشکی با color:#000)
+    style CLI fill:#E1F5FE,stroke:#01579B,color:#000
+    style PIPE fill:#E8F5E9,stroke:#2E7D32,color:#000
+    style ARITH fill:#FFF3E0,stroke:#E65100,color:#000
+    style CSV fill:#F3E5F5,stroke:#7B1FA2,color:#000
+    style REPORT fill:#F1F8E9,stroke:#558B2F,color:#000
+    style FIG fill:#F1F8E9,stroke:#558B2F,color:#000
+    style PAPER fill:#FFF9C4,stroke:#FBC02D,color:#000
+    style CI fill:#FCE4EC,stroke:#C2185B,color:#000
+    style TEST fill:#FCE4EC,stroke:#C2185B,color:#000
+    style ZENODO fill:#E0F2F1,stroke:#00695C,color:#000
 
     subgraph User_Interface [User Interface]
         CLI[main.py CLI Interface]
@@ -119,7 +125,6 @@ flowchart TD
         ZENODO[Zenodo DOI Archive]
     end
 
-    %% اتصالات با فلش‌های یکسان و منظم
     CLI --> PIPE
     PIPE --> ARITH
     ARITH --> CSV
@@ -127,15 +132,10 @@ flowchart TD
     CSV --> FIG
     REPORT --> PAPER
     FIG --> PAPER
-    
-    %% بخش تست و توزیع
     CI --> TEST
     TEST --> ZENODO
-
-    %% خط‌چین برای نظارت
     PIPE -.-> TEST
     ARITH -.-> TEST
-    FIG -.-> TEST
 ```
 ---
 ## ⚡ Quick Start
