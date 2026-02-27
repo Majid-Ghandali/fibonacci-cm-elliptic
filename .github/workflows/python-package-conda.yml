@@ -1,4 +1,4 @@
-name: Enterprise Python CI/CD (Indestructible Hardened)
+name: Fibonacci CM — CI/CD
 
 on:
   push:
@@ -16,38 +16,37 @@ permissions:
   id-token: write
 
 jobs:
-  # -----------------------------------
-  # 1️⃣ Static Analysis
-  # -----------------------------------
-  lint-and-typecheck:
+
+  # ─────────────────────────────────────────
+  # 1. Static Analysis
+  # ─────────────────────────────────────────
+  lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Conda/Mamba
-        uses: conda-incubator/setup-miniconda@v3
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          environment-file: environment.yml
-          activate-environment: fibonacci-cm-elliptic # اصلاح نام محیط
-          use-mamba: true
-          cache: true
-          auto-activate-base: false
+          cache: pip
 
-      - name: Code Quality Checks
-        run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-          mypy . --ignore-missing-imports
+      - name: Install lint tools
+        run: pip install flake8 mypy
 
-  # -----------------------------------
-  # 2️⃣ Cross-Platform Testing
-  # -----------------------------------
+      - name: flake8 — critical errors only
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: flake8 — style warnings
+        run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: mypy — type checking
+        run: mypy src/ --ignore-missing-imports
+
+  # ─────────────────────────────────────────
+  # 2. Cross-Platform Testing
+  # ─────────────────────────────────────────
   test:
-    needs: lint-and-typecheck
+    needs: lint
     name: Test (${{ matrix.os }} / Py ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -55,30 +54,23 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.11"]
-    defaults:
-      run:
-        shell: bash -l {0}
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Conda/Mamba
-        uses: conda-incubator/setup-miniconda@v3
+      - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }} # تزریق نسخه از ماتریکس
-          environment-file: environment.yml
-          activate-environment: fibonacci-cm-elliptic # اصلاح نام محیط (یکسان سازی با YAML)
-          use-mamba: true
-          cache: true
-          auto-activate-base: false
+          python-version: ${{ matrix.python-version }}
+          cache: pip
 
-      - name: Install Project in Editable Mode
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e . --no-build-isolation
+          pip install -e .
+          pip install pytest pytest-cov
 
-      - name: Run Pytest
-        # حالا چون محیط درست فعال شده، pytest-cov شناسایی می‌شود
-        run: pytest --cov=./ --cov-report=xml --cov-report=term-missing
+      - name: Run pytest
+        run: pytest --cov=src/ --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
         if: always() && hashFiles('coverage.xml') != ''
@@ -89,25 +81,25 @@ jobs:
           flags: ${{ matrix.os }}-py${{ matrix.python-version }}
           fail_ci_if_error: false
 
-  # -----------------------------------
-  # 3️⃣ Build & Release
-  # -----------------------------------
+  # ─────────────────────────────────────────
+  # 3. Build and Release (only on version tags)
+  # ─────────────────────────────────────────
   deploy:
     needs: test
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment:
       name: pypi
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: 'pip'
+          cache: pip
 
-      - name: Install Build Tools
+      - name: Install build tools
         run: |
           python -m pip install --upgrade pip
           pip install build twine
@@ -115,15 +107,15 @@ jobs:
       - name: Build sdist and wheel
         run: python -m build --sdist --wheel
 
-      - name: Verify Build Integrity
+      - name: Verify build integrity
         run: twine check dist/*
 
-      - name: Generate Checksums
+      - name: Generate checksums
         run: |
           cd dist
           sha256sum * > checksums.txt
 
-      - name: Internal Audit Upload
+      - name: Upload checksums artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-checksums-${{ github.ref_name }}
@@ -140,17 +132,3 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-
-      - name: Wait for API Propagation
-        run: sleep 15
-
-      - name: Publish to Zenodo
-        if: success() && steps.create_release.outcome == 'success'
-        uses: zenodo/zenodo-github-action@v1.4.0
-        with:
-          zenodo_token: ${{ secrets.ZENODO_TOKEN }}
-          files: dist/*
-          title: "Official Release: ${{ github.ref_name }}"
-          description: "Bank-grade production release for version ${{ github.ref_name }}"
-          creators: |
-            [{"name": "Majid", "affiliation": "Research Lab"}]
