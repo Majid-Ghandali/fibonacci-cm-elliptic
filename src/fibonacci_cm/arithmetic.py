@@ -158,8 +158,15 @@ def compute_prime_data(p: int) -> Dict:
         norm_trace    : float  a_p / sqrt(p) in [-2, 2].
         weil_ratio    : float  |a_p| / (2sqrt(p)) in [0, 1].
     """
+
     qr_table   = build_qr_table(p)
-    a_p        = fast_ap_engine(p, qr_table)
+
+    # Character sum S_p
+    S_p        = fast_ap_engine(p, qr_table)
+
+    # Frobenius trace
+    a_p        = -S_p
+
     sqrt_p     = np.sqrt(p)
     pisano_len = get_pisano_period(p)
 
