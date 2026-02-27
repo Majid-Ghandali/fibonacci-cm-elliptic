@@ -6,7 +6,7 @@ Entry point for the Fibonacci CM computation pipeline.
 Mathematical Scope
 ------------------
 Numerical verification of the identity:
-    S_p = -a_p(E),   E : y^2 = x^3 - 4x
+    a_p(E) = -S_p,   E : y^2 = x^3 - 4x
 
 The verification is performed for all primes $p$ inert in $\mathbb{Q}(\sqrt{5})$, 
 up to a user-specified bound. The CM property of $E$ forces $a_p = 0$ for 
