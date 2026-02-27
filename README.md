@@ -38,37 +38,30 @@ and Frobenius traces of a CM elliptic curve.
 ## 📁 Repository Structure
 
 fibonacci-cm-elliptic/
-│
 ├── .github/
 │ └── workflows/
-│ ├── ci.yml # Enterprise CI/CD pipeline
-│ │ # Matrix testing, coverage, Zenodo release
-│ └── zenodo-release.yml # Automated DOI publication
-│
+│ ├── ci.yml # Enterprise CI/CD: Matrix testing + Zenodo
+│ └── zenodo-release.yml # Automated DOI publication workflow
 ├── src/
 │ └── fibonacci_cm/
-│ ├── init.py # Package metadata
-│ ├── arithmetic.py # Numba JIT: Pisano + Frobenius traces
-│ ├── pipeline.py # Parallel prime processing
-│ ├── reporting.py # Excel reports + statistics
-│ └── figures.py # 600 DPI publication figures
-│
-├── tests/ # 13 research-grade unit tests
-│ ├── test_arithmetic.py # Mathematical correctness
-│ ├── test_pipeline_figures_reporting.py # E2E validation
-│ └── test_properties.py # Algebraic invariants
-│
-├── paper/ # LaTeX manuscript source
-│ ├── fibonacci_paper_v2.tex # Main AMS-LaTeX article
-│ ├── supplementary_material.tex # Extended proofs + tables
-│ └── references.bib # 15 academic references
-│
+│ ├── init.py # Package initialization + metadata
+│ ├── arithmetic.py # Numba JIT: Pisano periods + Frobenius traces
+│ ├── pipeline.py # Parallel prime processing pipeline
+│ ├── reporting.py # Excel reports + statistical analysis
+│ └── figures.py # 600 DPI publication-ready figures
+├── tests/ # 13 research-grade unit tests ✓
+│ ├── test_arithmetic.py # Mathematical correctness validation
+│ ├── test_pipeline_figures_reporting.py # End-to-end pipeline tests
+│ └── test_properties.py # Algebraic invariants + properties
+├── paper/ # LaTeX manuscript (AMS-LaTeX standard)
+│ ├── fibonacci_paper_v2.tex # Main research article
+│ ├── supplementary_material.tex # Extended proofs + computational tables
+│ └── references.bib # 15 academic references (BibTeX)
 ├── data/
-│ └── figures/ # Pre-rendered manuscript figures
-│
-├── main.py # CLI: compute/plot/resume modes
-├── pyproject.toml # PEP 621 build configuration
-├── requirements.txt # pip dependencies
+│ └── figures/ # Pre-rendered manuscript figures (600 DPI)
+├── main.py # CLI entry point (compute/plot/resume)
+├── pyproject.toml # PEP 621: Build system + metadata
+├── requirements.txt # pip install dependencies
 ├── LICENSE # MIT License
 ├── .gitignore
 └── README.md
