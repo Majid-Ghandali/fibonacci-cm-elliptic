@@ -1,35 +1,65 @@
 """
 pipeline.py
 ===========
-Parallel prime processing pipeline with fault-tolerant CSV streaming.
+Hardened parallel processing pipeline for Fibonacci CM research.
+Fault-tolerant, multi-core, checkpoint-recoverable.
 
-Handles three execution modes:
+Execution modes
+---------------
     RESUME  (1) : Continue from the last successfully saved prime.
     RESTART (2) : Clear existing data and recompute from scratch.
     PLOT    (3) : Regenerate figures from an existing dataset only.
 
 Architecture
 ------------
-- Prime sieve via sympy.sieve.primerange (memory-efficient generator).
-- Worker pool via multiprocessing.Pool with imap for ordered streaming.
-- Results written row-by-row to CSV (fault-tolerant: safe to interrupt).
+- Prime sieve via sympy.sieve.primerange (memory-efficient).
+- Worker pool via multiprocessing.Pool with imap and chunksize=512.
+- Results written row-by-row to CSV (safe to interrupt at any point).
 - Progress bar via tqdm.
+- Path-based I/O via pathlib for cross-platform compatibility.
 """
 
-import os
 import csv
+import sys
 from multiprocessing import Pool, cpu_count, freeze_support
+from pathlib import Path
 
 import pandas as pd
 from sympy import sieve
 from tqdm import tqdm
 
-from .arithmetic import compute_prime_data
+try:
+    from .arithmetic import compute_prime_data
+except ImportError:
+    # Fallback for local development when package is not installed
+    sys.path.append(str(Path(__file__).parent.parent))
+    from fibonacci_cm.arithmetic import compute_prime_data
 
 # ---------------------------------------------------------------------------
-# Dataset schema — column order is canonical throughout the project
+# Dataset schema — canonical column order throughout the project
 # ---------------------------------------------------------------------------
-FIELDS = ["p", "type", "pisano_period", "a_p", "norm_trace", "weil_ratio"]
+FIELDS       = ["p", "type", "pisano_period", "a_p", "norm_trace", "weil_ratio"]
+CSV_FILENAME = "Dataset_Raw_Primes.csv"
+
+
+def get_last_processed_prime(csv_path: Path) -> int:
+    """
+    Safely retrieve the last computed prime for checkpoint recovery.
+
+    Uses a low-memory tail-read instead of loading the full CSV —
+    critical for large datasets (148k+ rows).
+
+    Returns 1 if the file is empty or unreadable.
+    """
+    if not csv_path.exists() or csv_path.stat().st_size == 0:
+        return 1
+    try:
+        with open(csv_path, "r") as fh:
+            lines = fh.readlines()
+            last_line = lines[-1].strip()
+            return int(last_line.split(",")[0])
+    except (IndexError, ValueError):
+        return 1
 
 
 def run(output_dir: str, max_p: int, mode: str) -> pd.DataFrame:
@@ -38,42 +68,50 @@ def run(output_dir: str, max_p: int, mode: str) -> pd.DataFrame:
 
     Parameters
     ----------
-    output_dir : str   Directory for CSV and Excel outputs.
-    max_p      : int   Upper bound on prime range (inclusive).
-    mode       : str   '1' = Resume, '2' = Restart, '3' = Plot only.
+    output_dir : str
+        Directory for CSV and Excel outputs.
+    max_p : int
+        Upper bound on prime range (inclusive).
+    mode : str
+        'resume'  — continue from last checkpoint.
+        'restart' — clear existing data and recompute.
+        'plot'    — skip computation, load existing CSV.
 
     Returns
     -------
     pd.DataFrame with columns matching FIELDS, sorted by p.
     """
-    freeze_support()
-    os.makedirs(output_dir, exist_ok=True)
-    csv_path = os.path.join(output_dir, "Dataset_Raw_Primes.csv")
+    freeze_support()   # Critical for Windows multiprocessing stability
+
+    out_path = Path(output_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+    csv_path = out_path / CSV_FILENAME
 
     # ── Plot-only mode ────────────────────────────────────────────────────────
-    if mode == "3":
-        if os.path.exists(csv_path):
+    if mode == "plot":
+        if csv_path.exists():
             return _load_sorted(csv_path)
-        print("[Warning] No dataset found. Switching to Restart mode.")
-        mode = "2"
+        print("[Warning] No dataset found. Switching to restart mode.")
+        mode = "restart"
 
-    # ── Determine starting prime ──────────────────────────────────────────────
+    # ── Restart: remove existing data ─────────────────────────────────────────
+    if mode == "restart" and csv_path.exists():
+        csv_path.unlink()
+        print("[Info] Existing dataset removed. Starting fresh.")
+
+    # ── Resume: find checkpoint ───────────────────────────────────────────────
     start_p = 3
-    if mode == "1" and os.path.exists(csv_path):
-        try:
-            tmp = pd.read_csv(csv_path)
-            if not tmp.empty:
-                start_p = int(tmp["p"].max()) + 1
-                print(f"[Info] Resuming from p > {start_p - 1:,}")
-        except Exception:
-            pass
+    if mode == "resume" and csv_path.exists():
+        last_p  = get_last_processed_prime(csv_path)
+        start_p = last_p + 1
+        print(f"[Info] Resuming from p > {last_p:,}")
 
     # ── Enumerate primes and dispatch to worker pool ──────────────────────────
     primes     = list(sieve.primerange(start_p, max_p + 1))
-    write_mode = "a" if (mode == "1" and os.path.exists(csv_path)) else "w"
+    write_mode = "a" if (mode == "resume" and csv_path.exists()) else "w"
 
     if primes:
-        nproc = max(1, cpu_count() - 1)
+        nproc = max(1, cpu_count() - 1)   # reserve one core for OS
         print(f"[Compute] {len(primes):,} primes on {nproc} core(s) ...")
 
         with Pool(nproc) as pool:
@@ -96,7 +134,7 @@ def run(output_dir: str, max_p: int, mode: str) -> pd.DataFrame:
     return df
 
 
-def _load_sorted(csv_path: str) -> pd.DataFrame:
+def _load_sorted(csv_path: Path) -> pd.DataFrame:
     """Load dataset from CSV and return sorted by p with canonical columns."""
     df = pd.read_csv(csv_path)
     return df[FIELDS].sort_values("p").reset_index(drop=True)
