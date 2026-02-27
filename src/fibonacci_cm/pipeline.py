@@ -144,6 +144,23 @@ def run(output_dir: str, max_p: int, mode: str) -> pd.DataFrame:
 
 
 def _load_sorted(csv_path: Path) -> pd.DataFrame:
-    """Load dataset from CSV and return sorted by p with canonical columns."""
+    """
+    Load dataset from CSV, enforce canonical schema,
+    and return sorted by p.
+    Backward-compatible with older schema versions.
+    """
     df = pd.read_csv(csv_path)
-    return df[FIELDS].sort_values("p").reset_index(drop=True)
+
+    # ── Ensure all required columns exist ──────────────────────────
+    for col in FIELDS:
+        if col not in df.columns:
+            # Fill missing columns with safe defaults
+            if col in ("type_E", "type_F5"):
+                df[col] = "unknown"
+            else:
+                df[col] = 0
+
+    # ── Enforce canonical column order ─────────────────────────────
+    df = df[FIELDS]
+
+    return df.sort_values("p").reset_index(drop=True)
