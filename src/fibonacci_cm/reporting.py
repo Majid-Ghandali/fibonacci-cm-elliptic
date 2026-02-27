@@ -18,32 +18,47 @@ def print_summary(df: pd.DataFrame) -> None:
     """
     Print a formatted summary of the computed dataset to stdout.
 
+    Reports both inertness conditions separately:
+        type_E  : inertness in Q(i) — governs CM property a_p = 0
+        type_F5 : inertness in Q(sqrt(5)) — hypothesis of Theorem 1.3
+
     Parameters
     ----------
     df : pd.DataFrame
-        Must contain columns: p, type, pisano_period, weil_ratio.
+        Must contain columns: p, type_E, type_F5, pisano_period,
+        S_p, a_p, weil_ratio.
     """
-    n_total = len(df)
-    n_inert = (df["type"] == "inert").sum()
-    n_split = (df["type"] == "split").sum()
+    n_total    = len(df)
+    n_inert_E  = (df["type_E"]  == "inert_E").sum()
+    n_split_E  = (df["type_E"]  == "split_E").sum()
+    n_inert_F5 = (df["type_F5"] == "inert_F5").sum()
 
-    print("\n" + "-" * 52)
-    print(f"  Total primes           : {n_total:,}")
-    print(f"  Split  (p ≡ 1 mod 4)  : {n_split:,}")
-    print(f"  Inert  (p ≡ 3 mod 4)  : {n_inert:,}")
-    print(f"  Empirical inert ratio  : {n_inert / n_total:.6f}  (theory: 0.500000)")
-    print(f"  Max Weil ratio         : {df['weil_ratio'].max():.6f}  (bound: 1.000000)")
-    print(f"  Max Pisano period      : {df['pisano_period'].max():,}")
-    print(f"  Verification range     : 3  to  {int(df['p'].max()):,}")
-    print("-" * 52)
+    print("\n" + "-" * 58)
+    print(f"  Total primes                    : {n_total:,}")
+    print(f"  Inert in Q(i)   (p ≡ 3 mod 4)  : {n_inert_E:,}")
+    print(f"  Split in Q(i)   (p ≡ 1 mod 4)  : {n_split_E:,}")
+    print(f"  Inert in Q(√5)  (p ≡ ±2 mod 5) : {n_inert_F5:,}")
+    print(f"  Empirical Q(i)-inert ratio      : {n_inert_E / n_total:.6f}  (theory: 0.500000)")
+    print(f"  Max Weil ratio                  : {df['weil_ratio'].max():.6f}  (bound: 1.000000)")
+    print(f"  Max Pisano period               : {df['pisano_period'].max():,}")
+    print(f"  Verification range              : 3  to  {int(df['p'].max()):,}")
+    print("-" * 58)
 
-    # Verify CM property: all inert primes must have a_p = 0
-    inert_df = df[df["type"] == "inert"]
-    if (inert_df["a_p"] == 0).all():
-        print(f"  [OK] CM property verified: a_p = 0 for all {n_inert:,} inert primes.")
+    # CM property: all inert_E primes must have a_p = 0
+    inert_E_df = df[df["type_E"] == "inert_E"]
+    if (inert_E_df["a_p"] == 0).all():
+        print(f"  [OK] CM property: a_p = 0 for all {n_inert_E:,} primes inert in Q(i).")
     else:
-        n_fail = (inert_df["a_p"] != 0).sum()
-        print(f"  [ERROR] CM property FAILED for {n_fail} inert primes!")
+        n_fail = (inert_E_df["a_p"] != 0).sum()
+        print(f"  [ERROR] CM property FAILED for {n_fail} primes!")
+
+    # Theorem 1.3: S_p = -a_p for all inert_F5 primes
+    inert_F5_df = df[df["type_F5"] == "inert_F5"]
+    if (inert_F5_df["S_p"] == -inert_F5_df["a_p"]).all():
+        print(f"  [OK] Theorem 1.3: S_p = -a_p for all {n_inert_F5:,} primes inert in Q(√5).")
+    else:
+        n_fail = (inert_F5_df["S_p"] != -inert_F5_df["a_p"]).sum()
+        print(f"  [ERROR] Theorem 1.3 FAILED for {n_fail} primes!")
 
 
 def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
@@ -55,20 +70,23 @@ def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
     df        : pd.DataFrame   Full dataset (columns matching FIELDS).
     xlsx_path : str            Output path for the .xlsx file.
     """
-    n_total = len(df)
-    n_inert = (df["type"] == "inert").sum()
-    n_split = (df["type"] == "split").sum()
+    n_total    = len(df)
+    n_inert_E  = (df["type_E"]  == "inert_E").sum()
+    n_split_E  = (df["type_E"]  == "split_E").sum()
+    n_inert_F5 = (df["type_F5"] == "inert_F5").sum()
 
     summary = pd.DataFrame({
         "Parameter": [
             "Paper",
             "Verification range",
             "Total primes computed",
-            "Split primes (p ≡ 1 mod 4)",
-            "Inert primes (p ≡ 3 mod 4)",
-            "Empirical inert ratio",
+            "Inert in Q(i)  — p ≡ 3 mod 4  (CM property)",
+            "Split in Q(i)  — p ≡ 1 mod 4",
+            "Inert in Q(√5) — p ≡ ±2 mod 5  (Theorem 1.3)",
+            "Empirical Q(i)-inert ratio",
             "Chebotarev prediction",
-            "CM property (a_p = 0 for inert)",
+            "CM property a_p=0 for inert_E",
+            "Theorem 1.3: S_p=-a_p for inert_F5",
             "Maximum Pisano period",
             "Maximum Weil ratio |a_p|/(2√p)",
             "Hasse bound (theoretical)",
@@ -77,11 +95,13 @@ def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
             "Ghandali (2026) — Quadratic Residuosity in Fibonacci Sequences",
             f"3 to {int(df['p'].max()):,}",
             f"{n_total:,}",
-            f"{n_split:,}",
-            f"{n_inert:,}",
-            f"{n_inert / n_total:.6f}",
+            f"{n_inert_E:,}",
+            f"{n_split_E:,}",
+            f"{n_inert_F5:,}",
+            f"{n_inert_E / n_total:.6f}",
             "0.500000",
-            f"Verified for all {n_inert:,} inert primes",
+            f"Verified for all {n_inert_E:,} primes",
+            f"Verified for all {n_inert_F5:,} primes",
             f"{int(df['pisano_period'].max()):,}",
             f"{df['weil_ratio'].max():.6f}",
             "< 1.000000",
