@@ -53,8 +53,8 @@ def get_pisano_period(p: int) -> int:
     if p == 5:
         return 20
     prev, curr = 0, 1
-    # اصلاح: استفاده از حلقه مشخص برای شمارش صحیح و خروج به محض یافتن اولین دوره
-    for period in range(1, p  p + 1):
+    # اصلاح: افزودن عملگر ضرب برای کران بالا p^2 + 1
+    for period in range(1, p * p + 1):
         prev, curr = curr, (prev + curr) % p
         if prev == 0 and curr == 1:
             return period
@@ -113,7 +113,6 @@ def fast_ap_engine(p: int, qr_table: np.ndarray) -> int:
     Parameters
     ----------
     p        : int           An odd prime.
-
     qr_table : np.ndarray    Precomputed QR lookup table from build_qr_table(p).
 
     Returns
@@ -123,13 +122,15 @@ def fast_ap_engine(p: int, qr_table: np.ndarray) -> int:
     """
     s_t = 0
     for t in range(p):
-        val = (t  t  t - 4  t) % p
+        # اصلاح: افزودن عملگرهای ضرب برای ارزیابی صحیح چندجمله‌ای
+        val = (t * t * t - 4 * t) % p
         if val == 0:
             continue          # chi(0) = 0: point at infinity or cusp
         s_t += 1 if qr_table[val] == 1 else -1
 
-    # اصلاح: حذف علامت منفی برای مطابقت با انتظار تست (AssertionError: a_13 = -6, expected 6)
-    return s_t
+    # اصلاح: برگرداندن علامت منفی به صورت علمی و صحیح.
+    # بر اساس a_p = p + 1 - #E ، مقدار a_13 از نظر ریاضی دقیقاً -6 است.
+    return -s_t
 
 
 # ============================================================================
