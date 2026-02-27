@@ -23,6 +23,8 @@ dependencies = [
 dev = [
     "pytest>=7.0",
     "pytest-cov",
+    "pytest-env",
+    "hypothesis>=6.0",
     "flake8",
     "mypy",
     "twine",
