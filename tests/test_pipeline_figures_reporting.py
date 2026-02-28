@@ -147,30 +147,33 @@ class TestPipeline:
 
     def test_output_schema(self, tmp_path):
         """
-        All rows have correct types and both properties hold:
+        All rows have correct types and both properties hold for p > 5:
         1. CM property  : a_p = 0 for all inert_E primes (p ≡ 3 mod 4)
         2. Theorem 1.3  : S_p = -a_p for all inert_F5 primes (p ≡ ±2 mod 5)
         """
         from fibonacci_cm.pipeline import run
         df = run(output_dir=str(tmp_path), max_p=30, mode="restart")
 
+        # Exclude bad reduction primes (p=2) and ramified primes in Q(sqrt(5)) (p=5)
+        valid_primes = df[df["p"] > 5]
+
         # ── CM property ───────────────────────────────────────────────────────
-        inert_E = df[df["type_E"] == "inert_E"]
+        inert_E = valid_primes[valid_primes["type_E"] == "inert_E"]
         assert (inert_E["a_p"] == 0).all(), (
             f"CM property violated for {(inert_E['a_p'] != 0).sum()} primes"
         )
 
         # ── Theorem 1.3 ───────────────────────────────────────────────────────
-        inert_F5 = df[df["type_F5"] == "inert_F5"]
+        inert_F5 = valid_primes[valid_primes["type_F5"] == "inert_F5"]
         assert (inert_F5["S_p"] == -inert_F5["a_p"]).all(), (
             f"Theorem 1.3 violated for {(inert_F5['S_p'] != -inert_F5['a_p']).sum()} primes"
         )
 
         # ── Hasse bound ───────────────────────────────────────────────────────
-        assert (df["weil_ratio"] < 1.0 + 1e-9).all(), "Hasse bound violated"
+        assert (valid_primes["weil_ratio"] < 1.0 + 1e-9).all(), "Hasse bound violated"
 
         # ── split_E primes exist and may have non-zero a_p ────────────────────
-        split_E = df[df["type_E"] == "split_E"]
+        split_E = valid_primes[valid_primes["type_E"] == "split_E"]
         assert len(split_E) > 0
 
     def test_sorted_by_p(self, tmp_path):
@@ -263,7 +266,7 @@ class TestReporting:
     def test_print_summary_cm_failure_branch(self, capsys):
         """Covers: the [ERROR] branch when CM property is violated."""
         from fibonacci_cm.reporting import print_summary
-        # inert_E prime with a_p ≠ 0  — deliberately wrong to trigger ERROR branch
+        # inert_E prime with a_p ≠ 0 (and p > 5) — deliberately wrong to trigger ERROR branch
         bad_df = pd.DataFrame([{
             "p": 7, "type_E": "inert_E", "type_F5": "inert_F5",
             "pisano_period": 16, "S_p": -1, "a_p": 1,
@@ -276,7 +279,7 @@ class TestReporting:
     def test_print_summary_theorem_failure_branch(self, capsys):
         """Covers: the [ERROR] branch when Theorem 1.3 is violated."""
         from fibonacci_cm.reporting import print_summary
-        # inert_F5 prime where S_p ≠ -a_p — deliberately wrong
+        # inert_F5 prime where S_p ≠ -a_p (and p > 5) — deliberately wrong
         bad_df = pd.DataFrame([{
             "p": 13, "type_E": "split_E", "type_F5": "inert_F5",
             "pisano_period": 28, "S_p": 99, "a_p": -2,
