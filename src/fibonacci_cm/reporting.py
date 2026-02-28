@@ -29,16 +29,7 @@ def print_summary(df: pd.DataFrame) -> None:
         Must contain columns: p, type_E, type_F5, pisano_period,
         S_p, a_p, weil_ratio.
     """
-     # ── Backward compatibility ──────────────────────────────
-    if "type_E" not in df.columns and "type" in df.columns:
-        df["type_E"] = df["type"]
 
-    if "type_F5" not in df.columns:
-        df["type_F5"] = "unknown"
-
-    if "S_p" not in df.columns:
-        df["S_p"] = -df.get("a_p", 0)
-    
     n_total = len(df)
     n_inert_E = (df["type_E"] == "inert_E").sum()
     n_split_E = (df["type_E"] == "split_E").sum()
@@ -49,28 +40,38 @@ def print_summary(df: pd.DataFrame) -> None:
     print(f"  Inert in Q(i)   (p ≡ 3 mod 4)  : {n_inert_E:,}")
     print(f"  Split in Q(i)   (p ≡ 1 mod 4)  : {n_split_E:,}")
     print(f"  Inert in Q(√5)  (p ≡ ±2 mod 5) : {n_inert_F5:,}")
-    print(f"  Empirical Q(i)-inert ratio      : {n_inert_E / n_total:.6f}  (theory: 0.500000)")
-    print(f"  Max Weil ratio                  : {df['weil_ratio'].max():.6f}  (bound: 1.000000)")
-    print(f"  Max Pisano period               : {df['pisano_period'].max():,}")
-    print(f"  Verification range              : 3  to  {int(df['p'].max()):,}")
+
+    if n_total > 0:
+        print(f"  Empirical Q(i)-inert ratio      : {n_inert_E / n_total:.6f}  (theory: 0.500000)")
+        print(f"  Max Weil ratio                  : {df['weil_ratio'].max():.6f}  (bound: 1.000000)")
+        print(f"  Max Pisano period               : {df['pisano_period'].max():,}")
+        print(f"  Verification range              : 3 to {int(df['p'].max()):,}")
+    else:
+        print("  Dataset is empty.")
+
     print("-" * 58)
 
-    ## CM property: all inert_E primes must have a_p = 0
+    # ── CM property check ─────────────────────────────────────
     inert_E_df = df[df["type_E"] == "inert_E"]
-    if (inert_E_df["a_p"] == 0).all():
+
+    if inert_E_df.empty:
+        print("CM property: no inert_E primes in dataset.")
+    elif (inert_E_df["a_p"] == 0).all():
         print("CM property verified.")
     else:
         n_fail = (inert_E_df["a_p"] != 0).sum()
         print(f"CM property ERROR. Violated for {n_fail} primes.")
 
-    # Theorem 1.3: S_p = -a_p for all inert_F5 primes
+    # ── Theorem 1.3 check ─────────────────────────────────────
     inert_F5_df = df[df["type_F5"] == "inert_F5"]
-    if (inert_F5_df["S_p"] == -inert_F5_df["a_p"]).all():
-        print(f"  [OK] Theorem 1.3: S_p = -a_p for all {n_inert_F5:,} primes inert in Q(√5).")
+
+    if inert_F5_df.empty:
+        print("Theorem 1.3: no inert_F5 primes in dataset.")
+    elif (inert_F5_df["S_p"] == -inert_F5_df["a_p"]).all():
+        print("Theorem 1.3 verified.")
     else:
         n_fail = (inert_F5_df["S_p"] != -inert_F5_df["a_p"]).sum()
-        print(f"  [ERROR] Theorem 1.3 FAILED for {n_fail} primes!")
-
+        print(f"Theorem 1.3 ERROR. Violated for {n_fail} primes.")
 
 def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
     df = df.copy()
