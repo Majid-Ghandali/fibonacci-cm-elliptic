@@ -10,9 +10,16 @@ Strategy
 - Reporting: use a synthetic DataFrame; assert console output and Excel file.
 
 All tests run with NUMBA_DISABLE_JIT=1 (set in pyproject.toml).
+
+Schema note (v2)
+----------------
+Two distinct inertness conditions are tracked separately:
+    type_E  : 'inert_E' if p ≡ 3 (mod 4)  — CM property: a_p = 0
+    type_F5 : 'inert_F5' if p ≡ ±2 (mod 5) — hypothesis of Theorem 1.3
+    S_p     : raw character sum; S_p = -a_p (Theorem 1.3)
 """
 
-import os
+import csv
 import pytest
 import numpy as np
 import pandas as pd
@@ -20,26 +27,67 @@ from pathlib import Path
 
 
 # ============================================================
-# SHARED FIXTURE — small synthetic dataset
+# SHARED FIXTURE — small synthetic dataset (new schema)
 # ============================================================
 
 @pytest.fixture
 def small_df():
     """
-    Minimal synthetic DataFrame matching the FIELDS schema.
-    Contains 4 split and 4 inert primes with correct CM property.
+    Minimal synthetic DataFrame matching the current FIELDS schema.
+
+    type_E  : 'inert_E'  if p ≡ 3 (mod 4)  — governs CM property a_p = 0
+              'split_E'  if p ≡ 1 (mod 4)
+    type_F5 : 'inert_F5' if p ≡ ±2 (mod 5) — hypothesis of Theorem 1.3
+              'split_F5' if p ≡ ±1 (mod 5)
+    S_p     : raw character sum; S_p = -a_p
+
+    Primes chosen to cover all four (type_E × type_F5) combinations:
+        p=7  : inert_E  ∩ inert_F5  (p≡3 mod 4, p≡2 mod 5)  a_p=0
+        p=13 : split_E  ∩ inert_F5  (p≡1 mod 4, p≡3 mod 5)  a_p=-2 ≠ 0
+        p=11 : inert_E  ∩ split_F5  (p≡3 mod 4, p≡1 mod 5)  a_p=0
+        p=29 : split_E  ∩ split_F5  (p≡1 mod 4, p≡4 mod 5)  a_p=10
     """
     rows = [
-        # split primes (p ≡ 1 mod 4)
-        {"p": 5,  "type": "split", "pisano_period": 20, "a_p":  2, "norm_trace":  0.894, "weil_ratio": 0.447},
-        {"p": 13, "type": "split", "pisano_period": 28, "a_p": -6, "norm_trace": -1.664, "weil_ratio": 0.832},
-        {"p": 17, "type": "split", "pisano_period": 36, "a_p":  2, "norm_trace":  0.485, "weil_ratio": 0.243},
-        {"p": 29, "type": "split", "pisano_period": 14, "a_p": 10, "norm_trace":  1.857, "weil_ratio": 0.928},
-        # inert primes (p ≡ 3 mod 4) — CM property: a_p = 0
-        {"p": 3,  "type": "inert", "pisano_period":  8, "a_p":  0, "norm_trace":  0.000, "weil_ratio": 0.000},
-        {"p": 7,  "type": "inert", "pisano_period": 16, "a_p":  0, "norm_trace":  0.000, "weil_ratio": 0.000},
-        {"p": 11, "type": "inert", "pisano_period": 10, "a_p":  0, "norm_trace":  0.000, "weil_ratio": 0.000},
-        {"p": 19, "type": "inert", "pisano_period": 18, "a_p":  0, "norm_trace":  0.000, "weil_ratio": 0.000},
+        # inert_E ∩ inert_F5  (p=7: 7≡3 mod4, 7≡2 mod5)
+        {"p": 7,  "type_E": "inert_E",  "type_F5": "inert_F5",
+         "pisano_period": 16, "S_p":  0, "a_p":  0,
+         "norm_trace": 0.000, "weil_ratio": 0.000},
+
+        # inert_E ∩ split_F5  (p=11: 11≡3 mod4, 11≡1 mod5)
+        {"p": 11, "type_E": "inert_E",  "type_F5": "split_F5",
+         "pisano_period": 10, "S_p":  0, "a_p":  0,
+         "norm_trace": 0.000, "weil_ratio": 0.000},
+
+        # inert_E ∩ inert_F5  (p=19: 19≡3 mod4, 19≡4 mod5 ≡ -1 mod5)
+        {"p": 19, "type_E": "inert_E",  "type_F5": "inert_F5",
+         "pisano_period": 18, "S_p":  0, "a_p":  0,
+         "norm_trace": 0.000, "weil_ratio": 0.000},
+
+        # inert_E ∩ split_F5  (p=3: 3≡3 mod4, 3≡3 mod5 — wait: 3 mod5=3 ≡ -2, so inert_F5)
+        # Correction: p=3, 3 mod 5 = 3 ≡ -2 mod 5  => inert_F5
+        {"p": 3,  "type_E": "inert_E",  "type_F5": "inert_F5",
+         "pisano_period":  8, "S_p":  0, "a_p":  0,
+         "norm_trace": 0.000, "weil_ratio": 0.000},
+
+        # split_E ∩ inert_F5  (p=13: 13≡1 mod4, 13≡3 mod5 ≡ -2 mod5)
+        {"p": 13, "type_E": "split_E",  "type_F5": "inert_F5",
+         "pisano_period": 28, "S_p":  2, "a_p": -2,
+         "norm_trace": -0.555, "weil_ratio": 0.277},
+
+        # split_E ∩ split_F5  (p=29: 29≡1 mod4, 29≡4 mod5 ≡ -1 mod5)
+        {"p": 29, "type_E": "split_E",  "type_F5": "split_F5",
+         "pisano_period": 14, "S_p": -10, "a_p": 10,
+         "norm_trace":  1.857, "weil_ratio": 0.928},
+
+        # split_E ∩ inert_F5  (p=17: 17≡1 mod4, 17≡2 mod5)
+        {"p": 17, "type_E": "split_E",  "type_F5": "inert_F5",
+         "pisano_period": 36, "S_p": -2, "a_p":  2,
+         "norm_trace":  0.485, "weil_ratio": 0.243},
+
+        # split_E ∩ split_F5  (p=5: special, split_E since 5≡1 mod4)
+        {"p": 5,  "type_E": "split_E",  "type_F5": "split_F5",
+         "pisano_period": 20, "S_p": -2, "a_p":  2,
+         "norm_trace":  0.894, "weil_ratio": 0.447},
     ]
     return pd.DataFrame(rows)
 
@@ -60,9 +108,10 @@ class TestPipeline:
 
         assert isinstance(df, pd.DataFrame)
         assert len(df) > 0
-        # All expected columns present
-        for col in ["p", "type", "pisano_period", "a_p", "norm_trace", "weil_ratio"]:
-            assert col in df.columns
+        # All expected columns present (new schema)
+        for col in ["p", "type_E", "type_F5", "pisano_period",
+                    "S_p", "a_p", "norm_trace", "weil_ratio"]:
+            assert col in df.columns, f"Missing column: {col}"
 
     def test_restart_creates_csv(self, tmp_path):
         """CSV file is created after restart run."""
@@ -97,16 +146,32 @@ class TestPipeline:
         assert isinstance(df, pd.DataFrame)
 
     def test_output_schema(self, tmp_path):
-        """All rows have correct types and CM property holds."""
+        """
+        All rows have correct types and both properties hold:
+        1. CM property  : a_p = 0 for all inert_E primes (p ≡ 3 mod 4)
+        2. Theorem 1.3  : S_p = -a_p for all inert_F5 primes (p ≡ ±2 mod 5)
+        """
         from fibonacci_cm.pipeline import run
         df = run(output_dir=str(tmp_path), max_p=30, mode="restart")
 
-        inert = df[df["type"] == "inert"]
-        split = df[df["type"] == "split"]
+        # ── CM property ───────────────────────────────────────────────────────
+        inert_E = df[df["type_E"] == "inert_E"]
+        assert (inert_E["a_p"] == 0).all(), (
+            f"CM property violated for {(inert_E['a_p'] != 0).sum()} primes"
+        )
 
-        assert (inert["a_p"] == 0).all(), "CM property violated"
-        assert len(split) > 0
+        # ── Theorem 1.3 ───────────────────────────────────────────────────────
+        inert_F5 = df[df["type_F5"] == "inert_F5"]
+        assert (inert_F5["S_p"] == -inert_F5["a_p"]).all(), (
+            f"Theorem 1.3 violated for {(inert_F5['S_p'] != -inert_F5['a_p']).sum()} primes"
+        )
+
+        # ── Hasse bound ───────────────────────────────────────────────────────
         assert (df["weil_ratio"] < 1.0 + 1e-9).all(), "Hasse bound violated"
+
+        # ── split_E primes exist and may have non-zero a_p ────────────────────
+        split_E = df[df["type_E"] == "split_E"]
+        assert len(split_E) > 0
 
     def test_sorted_by_p(self, tmp_path):
         """Output DataFrame is sorted by p."""
@@ -129,13 +194,15 @@ class TestPipeline:
     def test_get_last_processed_prime_valid(self, tmp_path):
         """Covers: valid CSV returns last prime correctly."""
         from fibonacci_cm.pipeline import get_last_processed_prime, FIELDS
-        import csv
         csv_path = tmp_path / "test.csv"
         with open(csv_path, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=FIELDS)
             writer.writeheader()
-            writer.writerow({"p": 7, "type": "inert", "pisano_period": 16,
-                             "a_p": 0, "norm_trace": 0.0, "weil_ratio": 0.0})
+            writer.writerow({
+                "p": 7, "type_E": "inert_E", "type_F5": "inert_F5",
+                "pisano_period": 16, "S_p": 0,
+                "a_p": 0, "norm_trace": 0.0, "weil_ratio": 0.0,
+            })
         assert get_last_processed_prime(csv_path) == 7
 
 
@@ -186,21 +253,35 @@ class TestFigures:
 class TestReporting:
 
     def test_print_summary_runs(self, small_df, capsys):
-        """Covers: print_summary — all print branches."""
+        """Covers: print_summary — all print branches (new schema)."""
         from fibonacci_cm.reporting import print_summary
         print_summary(small_df)
         captured = capsys.readouterr()
         assert "Total primes" in captured.out
-        assert "CM property verified" in captured.out
+        assert "[OK]" in captured.out
 
     def test_print_summary_cm_failure_branch(self, capsys):
         """Covers: the [ERROR] branch when CM property is violated."""
         from fibonacci_cm.reporting import print_summary
-        bad_df = pd.DataFrame([
-            {"p": 7, "type": "inert", "pisano_period": 16,
-             "a_p": 1, "norm_trace": 0.378, "weil_ratio": 0.189,
-             "weil_ratio": 0.189},
-        ])
+        # inert_E prime with a_p ≠ 0  — deliberately wrong to trigger ERROR branch
+        bad_df = pd.DataFrame([{
+            "p": 7, "type_E": "inert_E", "type_F5": "inert_F5",
+            "pisano_period": 16, "S_p": -1, "a_p": 1,
+            "norm_trace": 0.378, "weil_ratio": 0.189,
+        }])
+        print_summary(bad_df)
+        captured = capsys.readouterr()
+        assert "ERROR" in captured.out
+
+    def test_print_summary_theorem_failure_branch(self, capsys):
+        """Covers: the [ERROR] branch when Theorem 1.3 is violated."""
+        from fibonacci_cm.reporting import print_summary
+        # inert_F5 prime where S_p ≠ -a_p — deliberately wrong
+        bad_df = pd.DataFrame([{
+            "p": 13, "type_E": "split_E", "type_F5": "inert_F5",
+            "pisano_period": 28, "S_p": 99, "a_p": -2,
+            "norm_trace": -0.555, "weil_ratio": 0.277,
+        }])
         print_summary(bad_df)
         captured = capsys.readouterr()
         assert "ERROR" in captured.out
@@ -252,76 +333,56 @@ class TestReporting:
 
 
 # ============================================================
-# PIPELINE — COVERAGE COMPLETION (lines 33-36, 61-62, 99-100)
+# PIPELINE — COVERAGE COMPLETION
 # ============================================================
 
 class TestPipelineCoverageCompletion:
 
     def test_restart_deletes_existing_csv(self, tmp_path):
         """
-        Covers lines 99-100: csv_path.unlink() when restart mode
-        finds an existing CSV file.
-        First create a CSV, then restart to trigger deletion.
+        Covers: csv_path.unlink() when restart mode finds an existing CSV.
         """
         from fibonacci_cm.pipeline import run
-        # Create initial dataset
         run(output_dir=str(tmp_path), max_p=13, mode="restart")
         csv_file = tmp_path / "Dataset_Raw_Primes.csv"
         assert csv_file.exists()
 
-        # Restart again — triggers unlink() on existing file
         df = run(output_dir=str(tmp_path), max_p=13, mode="restart")
         assert isinstance(df, pd.DataFrame)
         assert len(df) > 0
 
     def test_get_last_prime_corrupted_csv(self, tmp_path):
         """
-        Covers lines 61-62: except (IndexError, ValueError) branch.
+        Covers: except (IndexError, ValueError) branch.
         A CSV with non-integer first column triggers ValueError.
         """
         from fibonacci_cm.pipeline import get_last_processed_prime
         bad_csv = tmp_path / "bad.csv"
-        bad_csv.write_text("p,type,a_p\nNOT_AN_INT,inert,0\n")
+        bad_csv.write_text("p,type_E,type_F5,a_p\nNOT_AN_INT,inert_E,inert_F5,0\n")
         result = get_last_processed_prime(bad_csv)
         assert result == 1
 
     def test_get_last_prime_only_header(self, tmp_path):
         """
-        Covers lines 61-62: IndexError when CSV has only header row.
-        lines[-1] is the header — int("p") raises ValueError.
+        Covers: IndexError when CSV has only header row.
         """
         from fibonacci_cm.pipeline import get_last_processed_prime
         header_only = tmp_path / "header.csv"
-        header_only.write_text("p,type,pisano_period,a_p,norm_trace,weil_ratio\n")
+        header_only.write_text(
+            "p,type_E,type_F5,pisano_period,S_p,a_p,norm_trace,weil_ratio\n"
+        )
         result = get_last_processed_prime(header_only)
         assert result == 1
 
-    def test_import_fallback_path(self, tmp_path, monkeypatch):
+    def test_import_fallback_path(self, tmp_path):
         """
-        Covers lines 33-36: the except ImportError fallback.
-        We simulate ImportError by temporarily breaking the relative import.
+        Covers: the except ImportError fallback in pipeline.py.
+        Verifies compute_prime_data is importable via absolute path.
         """
-        import sys
-        import importlib
-
-        # Remove the cached module to force re-import
-        mods_to_remove = [k for k in sys.modules if "fibonacci_cm.pipeline" in k]
-        for mod in mods_to_remove:
-            del sys.modules[mod]
-
-        # Patch the relative import to raise ImportError
-        original_import = __builtins__.__import__ if hasattr(__builtins__, '__import__') else __import__
-
-        def mock_import(name, *args, **kwargs):
-            if name == "fibonacci_cm.arithmetic" and args and args[0] is not None:
-                raise ImportError("simulated")
-            return original_import(name, *args, **kwargs)
-
-        # The fallback path is executed at module load time —
-        # we verify it works by confirming compute_prime_data is importable
-        # via the absolute path (which the fallback uses)
         import sys
         sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
         from fibonacci_cm.arithmetic import compute_prime_data
         result = compute_prime_data(7)
         assert result["a_p"] == 0
+        assert result["type_E"] == "inert_E"
+        assert result["type_F5"] == "inert_F5"
