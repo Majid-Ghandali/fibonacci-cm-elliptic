@@ -55,12 +55,13 @@ def print_summary(df: pd.DataFrame) -> None:
     print(f"  Verification range              : 3  to  {int(df['p'].max()):,}")
     print("-" * 58)
 
-    # CM property: all inert_E primes must have a_p = 0
+    ## CM property: all inert_E primes must have a_p = 0
     inert_E_df = df[df["type_E"] == "inert_E"]
     if (inert_E_df["a_p"] == 0).all():
         print("CM property verified.")
     else:
-        print("CM property ERROR.")
+        n_fail = (inert_E_df["a_p"] != 0).sum()
+        print(f"CM property ERROR. Violated for {n_fail} primes.")
 
     # Theorem 1.3: S_p = -a_p for all inert_F5 primes
     inert_F5_df = df[df["type_F5"] == "inert_F5"]
