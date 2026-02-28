@@ -7,15 +7,15 @@ Produces three 600 dpi grayscale PNG figures:
 
     Fig1_Trace_Analysis.png
         Scatter of normalised Frobenius traces a_p/sqrt(p) vs p.
-        Split primes fill [-2, 2]; inert primes cluster at 0 (CM property).
-        Includes an inset showing exact-zero behaviour for small primes.
+        Split primes (split_E) fill [-2, 2]; inert primes (inert_E)
+        cluster at 0 (CM property).
 
     Fig2_SatoTate.png
-        Histogram of normalised traces for split primes vs the theoretical
+        Histogram of normalised traces for split_E primes vs the theoretical
         CM Sato--Tate density  rho(x) = 1/(pi * sqrt(4 - x^2)).
 
     Fig3_Convergence.png
-        Cumulative inert-prime fraction converging to the Chebotarev
+        Cumulative inert_E-prime fraction converging to the Chebotarev
         density delta = 1/2.
 
 Style
@@ -71,7 +71,7 @@ def generate_all(df: pd.DataFrame, output_dir: str) -> None:
 
     Parameters
     ----------
-    df         : pd.DataFrame   Full dataset with columns p, type,
+    df         : pd.DataFrame   Full dataset with columns p, type_E,
                                 norm_trace, weil_ratio, pisano_period.
     output_dir : str            Directory where PNG files are saved.
     """
@@ -92,8 +92,8 @@ def generate_all(df: pd.DataFrame, output_dir: str) -> None:
 # ============================================================================
 
 def _fig1_trace_scatter(df: pd.DataFrame, output_dir: str) -> None:
-    split  = df[df["type"] == "split"]
-    inert  = df[df["type"] == "inert"]
+    split  = df[df["type_E"] == "split_E"]
+    inert  = df[df["type_E"] == "inert_E"]
     max_p  = int(df["p"].max())
 
     fig, ax = plt.subplots(figsize=(6.0, 4.0))
@@ -116,8 +116,8 @@ def _fig1_trace_scatter(df: pd.DataFrame, output_dir: str) -> None:
                        bbox_to_anchor=(-0.02, -0.02, 1, 1),
                        bbox_transform=ax.transAxes)
     small = df[df["p"] < 500]
-    sp    = small[small["type"] == "split"]
-    ip    = small[small["type"] == "inert"]
+    sp    = small[small["type_E"] == "split_E"]
+    ip    = small[small["type_E"] == "inert_E"]
     axins.scatter(sp["p"], sp["norm_trace"], s=4, color="0.35", alpha=0.6,
                   linewidths=0)
     axins.scatter(ip["p"], np.zeros(len(ip)), s=6, color="black", alpha=0.8,
@@ -155,7 +155,7 @@ def _fig1_trace_scatter(df: pd.DataFrame, output_dir: str) -> None:
 # ============================================================================
 
 def _fig2_sato_tate(df: pd.DataFrame, output_dir: str) -> None:
-    split = df[df["type"] == "split"]
+    split = df[df["type_E"] == "split_E"]
     max_p = int(df["p"].max())
 
     fig, ax = plt.subplots(figsize=(5.5, 4.0))
@@ -202,7 +202,7 @@ def _fig2_sato_tate(df: pd.DataFrame, output_dir: str) -> None:
 
 def _fig3_chebotarev(df: pd.DataFrame, output_dir: str) -> None:
     total     = len(df)
-    cum_ratio = (df["type"] == "inert").astype(int).cumsum() / (df.index + 1)
+    cum_ratio = (df["type_E"] == "inert_E").astype(int).cumsum() / (df.index + 1)
     x_vals    = df.index.values + 1
 
     fig, ax = plt.subplots(figsize=(5.5, 4.0))
