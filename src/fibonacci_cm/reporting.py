@@ -10,12 +10,10 @@ Produces a two-sheet Excel workbook:
 Also prints a formatted console summary after computation.
 """
 
-import os
 import pandas as pd
 
 
 def print_summary(df: pd.DataFrame) -> None:
-    df = df.copy()
     """
     Print a formatted summary of the computed dataset to stdout.
 
@@ -29,10 +27,11 @@ def print_summary(df: pd.DataFrame) -> None:
         Must contain columns: p, type_E, type_F5, pisano_period,
         S_p, a_p, weil_ratio.
     """
+    df = df.copy()
 
-    n_total = len(df)
-    n_inert_E = (df["type_E"] == "inert_E").sum()
-    n_split_E = (df["type_E"] == "split_E").sum()
+    n_total    = len(df)
+    n_inert_E  = (df["type_E"]  == "inert_E").sum()
+    n_split_E  = (df["type_E"]  == "split_E").sum()
     n_inert_F5 = (df["type_F5"] == "inert_F5").sum()
 
     print("\n" + "-" * 58)
@@ -51,30 +50,30 @@ def print_summary(df: pd.DataFrame) -> None:
 
     print("-" * 58)
 
-    # ── CM property check ─────────────────────────────────────
+    # ── CM property check ─────────────────────────────────────────────────────
     inert_E_df = df[df["type_E"] == "inert_E"]
 
     if inert_E_df.empty:
-        print("CM property: no inert_E primes in dataset.")
+        print("  [OK] CM property: no inert_E primes in dataset.")
     elif (inert_E_df["a_p"] == 0).all():
-        print("CM property verified.")
+        print(f"  [OK] CM property: a_p = 0 for all {n_inert_E:,} primes inert in Q(i).")
     else:
         n_fail = (inert_E_df["a_p"] != 0).sum()
-        print(f"CM property ERROR. Violated for {n_fail} primes.")
+        print(f"  [ERROR] CM property FAILED for {n_fail} primes!")
 
-    # ── Theorem 1.3 check ─────────────────────────────────────
+    # ── Theorem 1.3 check ─────────────────────────────────────────────────────
     inert_F5_df = df[df["type_F5"] == "inert_F5"]
 
     if inert_F5_df.empty:
-        print("Theorem 1.3: no inert_F5 primes in dataset.")
+        print("  [OK] Theorem 1.3: no inert_F5 primes in dataset.")
     elif (inert_F5_df["S_p"] == -inert_F5_df["a_p"]).all():
-        print("Theorem 1.3 verified.")
+        print(f"  [OK] Theorem 1.3: S_p = -a_p for all {n_inert_F5:,} primes inert in Q(√5).")
     else:
         n_fail = (inert_F5_df["S_p"] != -inert_F5_df["a_p"]).sum()
-        print(f"Theorem 1.3 ERROR. Violated for {n_fail} primes.")
+        print(f"  [ERROR] Theorem 1.3 FAILED for {n_fail} primes!")
+
 
 def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
-    df = df.copy()
     """
     Write a two-sheet Excel workbook with raw data and summary statistics.
 
@@ -83,16 +82,16 @@ def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
     df        : pd.DataFrame   Full dataset (columns matching FIELDS).
     xlsx_path : str            Output path for the .xlsx file.
     """
-        # ── Backward compatibility ──────────────────────────────
+    df = df.copy()
+
+    # ── Backward compatibility ────────────────────────────────────────────────
     if "type_E" not in df.columns and "type" in df.columns:
         df["type_E"] = df["type"]
-
     if "type_F5" not in df.columns:
         df["type_F5"] = "unknown"
-
     if "S_p" not in df.columns:
         df["S_p"] = -df.get("a_p", 0)
-    
+
     n_total    = len(df)
     n_inert_E  = (df["type_E"]  == "inert_E").sum()
     n_split_E  = (df["type_E"]  == "split_E").sum()
