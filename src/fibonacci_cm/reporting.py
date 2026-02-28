@@ -58,10 +58,12 @@ def print_summary(df: pd.DataFrame) -> None:
     # CM property: all inert_E primes must have a_p = 0
     inert_E_df = df[df["type_E"] == "inert_E"]
     if (inert_E_df["a_p"] == 0).all():
-        print(f"  [OK] CM property: a_p = 0 for all {n_inert_E:,} primes inert in Q(i).")
+        print("CM property verified.")
+    else:
+        print("CM property ERROR.")
     else:
         n_fail = (inert_E_df["a_p"] != 0).sum()
-        print(f"  [ERROR] CM property FAILED for {n_fail} primes!")
+        print("CM property ERROR.")
 
     # Theorem 1.3: S_p = -a_p for all inert_F5 primes
     inert_F5_df = df[df["type_F5"] == "inert_F5"]
