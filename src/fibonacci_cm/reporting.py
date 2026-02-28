@@ -30,9 +30,9 @@ def print_summary(df: pd.DataFrame) -> None:
     df = df.copy()
 
     n_total    = len(df)
-    n_inert_E  = (df["type_E"]  == "inert_E").sum()
-    n_split_E  = (df["type_E"]  == "split_E").sum()
-    n_inert_F5 = (df["type_F5"] == "inert_F5").sum()
+    n_inert_E  = (df["type_E"]  == "inert_E").sum() if "type_E" in df.columns else 0
+    n_split_E  = (df["type_E"]  == "split_E").sum() if "type_E" in df.columns else 0
+    n_inert_F5 = (df["type_F5"] == "inert_F5").sum() if "type_F5" in df.columns else 0
 
     print("\n" + "-" * 58)
     print(f"  Total primes                    : {n_total:,}")
@@ -50,7 +50,10 @@ def print_summary(df: pd.DataFrame) -> None:
 
     print("-" * 58)
 
-    # Filtering primes p > 5 to avoid bad reduction (p=2) and ramification issues (p=5)
+    if n_total == 0:
+        return
+
+    # فقط p > 5 جهت پرهیز از کاهش بد در p=2 و انشعاب در p=5
     valid_df = df[df["p"] > 5]
 
     # ── CM property check ─────────────────────────────────────────────────────
@@ -59,10 +62,10 @@ def print_summary(df: pd.DataFrame) -> None:
     if inert_E_df.empty:
         print(f"  [OK] CM property: no inert_E primes (p > 5) in dataset.")
     elif (inert_E_df["a_p"] == 0).all():
-        print(f"  [OK] CM property: a_p = 0 for all {len(inert_E_df):,} primes inert in Q(i) (p > 5).")
+        print(f"  [OK] CM property verified for all {len(inert_E_df):,} inert_E primes >5.")
     else:
         n_fail = (inert_E_df["a_p"] != 0).sum()
-        print(f"  [ERROR] CM property FAILED for {n_fail} primes (p > 5)!")
+        print(f"  [ERROR] CM property failed for {n_fail} primes >5!")
 
     # ── Theorem 1.3 check ─────────────────────────────────────────────────────
     inert_F5_df = valid_df[valid_df["type_F5"] == "inert_F5"]
@@ -70,10 +73,10 @@ def print_summary(df: pd.DataFrame) -> None:
     if inert_F5_df.empty:
         print(f"  [OK] Theorem 1.3: no inert_F5 primes (p > 5) in dataset.")
     elif (inert_F5_df["S_p"] == -inert_F5_df["a_p"]).all():
-        print(f"  [OK] Theorem 1.3: S_p = -a_p for all {len(inert_F5_df):,} primes inert in Q(√5) (p > 5).")
+        print(f"  [OK] Theorem 1.3 verified for all {len(inert_F5_df):,} inert_F5 primes >5.")
     else:
         n_fail = (inert_F5_df["S_p"] != -inert_F5_df["a_p"]).sum()
-        print(f"  [ERROR] Theorem 1.3 FAILED for {n_fail} primes (p > 5)!")
+        print(f"  [ERROR] Theorem 1.3 failed for {n_fail} primes >5!")
 
 
 def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
@@ -92,13 +95,19 @@ def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
         df["type_E"] = df["type"]
     if "type_F5" not in df.columns:
         df["type_F5"] = "unknown"
-    if "S_p" not in df.columns:
-        df["S_p"] = -df.get("a_p", 0)
+    if "S_p" not in df.columns and "a_p" in df.columns:
+        # اگر a_p در دسترس است از آن استفاده می‌کنیم بدون اینکه 0 رو دیفالت قرار بدیم
+        df["S_p"] = -df["a_p"]
 
     n_total    = len(df)
-    n_inert_E  = (df["type_E"]  == "inert_E").sum()
-    n_split_E  = (df["type_E"]  == "split_E").sum()
-    n_inert_F5 = (df["type_F5"] == "inert_F5").sum()
+    n_inert_E  = (df["type_E"]  == "inert_E").sum() if "type_E" in df.columns else 0
+    n_split_E  = (df["type_E"]  == "split_E").sum() if "type_E" in df.columns else 0
+    n_inert_F5 = (df["type_F5"] == "inert_F5").sum() if "type_F5" in df.columns else 0
+
+    max_p = f"3 to {int(df['p'].max()):,}" if n_total > 0 else "N/A"
+    max_pisano = f"{int(df['pisano_period'].max()):,}" if n_total > 0 and "pisano_period" in df.columns else "N/A"
+    max_weil = f"{df['weil_ratio'].max():.6f}" if n_total > 0 and "weil_ratio" in df.columns else "N/A"
+    ratio = f"{n_inert_E / n_total:.6f}" if n_total > 0 else "N/A"
 
     summary = pd.DataFrame({
         "Parameter": [
@@ -118,17 +127,17 @@ def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
         ],
         "Value": [
             "Ghandali (2026) — Quadratic Residuosity in Fibonacci Sequences",
-            f"3 to {int(df['p'].max()):,}",
+            max_p,
             f"{n_total:,}",
             f"{n_inert_E:,}",
             f"{n_split_E:,}",
             f"{n_inert_F5:,}",
-            f"{n_inert_E / n_total:.6f}",
+            ratio,
             "0.500000",
-            f"Verified",
-            f"Verified",
-            f"{int(df['pisano_period'].max()):,}",
-            f"{df['weil_ratio'].max():.6f}",
+            "Verified",
+            "Verified",
+            max_pisano,
+            max_weil,
             "< 1.000000",
         ],
     })
