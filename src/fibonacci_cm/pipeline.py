@@ -1,4 +1,4 @@
-"
+"""
 pipeline.py
 ===========
 Hardened parallel processing pipeline for Fibonacci CM research.
@@ -165,7 +165,7 @@ def _load_sorted(csv_path: Path) -> pd.DataFrame:
     """
     df = pd.read_csv(csv_path)
 
-    # Ensure all required columns exist
+    # ── Ensure all required columns exist ──────────────────────────
     for col in FIELDS:
         if col not in df.columns:
             if col in ("type_E", "type_F5"):
@@ -173,13 +173,7 @@ def _load_sorted(csv_path: Path) -> pd.DataFrame:
             else:
                 df[col] = 0
 
-    # Force correct types
-    df["a_p"] = df["a_p"].fillna(0).astype(int)
-    df["S_p"] = df["S_p"].fillna(-df["a_p"]).astype(int)
-    df["weil_ratio"] = df.get("weil_ratio", 0.0).astype(float)
-    df["pisano_period"] = df.get("pisano_period", 0).astype(int)
-
-    # Enforce canonical column order
+    # ── Enforce canonical column order ─────────────────────────────
     df = df[FIELDS]
 
     return df.sort_values("p").reset_index(drop=True)
