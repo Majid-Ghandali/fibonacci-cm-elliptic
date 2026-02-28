@@ -115,33 +115,26 @@ def fast_ap_engine(p: int, qr_table: np.ndarray) -> int:
 def compute_prime_data(p: int) -> Dict:
 
     qr_table   = build_qr_table(p)
-    a_p        = fast_ap_engine(p, qr_table)
+
+    # raw character sum
+    S_p        = fast_ap_engine(p, qr_table)
+
+    # Frobenius trace
+    a_p        = -S_p
+
     sqrt_p     = np.sqrt(p)
     pisano_len = get_pisano_period(p)
 
-    # ── Type in Q(i) (CM split/inert) ───────────────────────
-    type_E = "split_E" if p % 4 == 1 else "inert_E"
+    type_E  = "split_E" if p % 4 == 1 else "inert_E"
 
-    # ── Type in Q(√5) (Fibonacci field) ─────────────────────
     r5 = p % 5
-    if r5 in (1, 4):
-        type_F5 = "split_F5"
-    else:
-        type_F5 = "inert_F5"
-
-    # S_p = -a_p  (Theorem 1.3 convention)
-    S_p = -a_p
+    type_F5 = "split_F5" if r5 in (1,4) else "inert_F5"
 
     return {
         "p": p,
-
-        # 🔥 legacy key REQUIRED by tests
         "type": "split" if p % 4 == 1 else "inert",
-
-        # new schema
         "type_E": type_E,
         "type_F5": type_F5,
-
         "pisano_period": pisano_len,
         "S_p": S_p,
         "a_p": a_p,
