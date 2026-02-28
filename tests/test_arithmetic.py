@@ -55,7 +55,7 @@ def brute_force_point_count(p: int, A: int = -4, B: int = 0) -> int:
 
 
 # ============================================================
-# PISANO PERIOD TESTS  (lines 41-51)
+# PISANO PERIOD TESTS
 # ============================================================
 
 class TestPisanoPeriod:
@@ -86,7 +86,7 @@ class TestPisanoPeriod:
 
 
 # ============================================================
-# QUADRATIC RESIDUE TABLE TESTS  (lines 68-71)
+# QUADRATIC RESIDUE TABLE TESTS
 # ============================================================
 
 class TestQRTable:
@@ -116,29 +116,21 @@ class TestQRTable:
 
 
 # ============================================================
-# FROBENIUS TRACE TESTS  (lines 102-108)
+# FROBENIUS TRACE TESTS
 # ============================================================
 
 class TestFrobeniusTrace:
 
     def test_zero_val_skipped(self):
-        """
-        Covers line 105-106: val==0 is skipped (chi(0)=0).
-        For t=0: val = 0^3 - 4*0 = 0 => skipped.
-        Ensures the 'continue' branch is executed.
-        """
+        """val==0 is skipped (chi(0)=0). Ensures 'continue' branch runs."""
         qr = build_qr_table(7)
         S_p = fast_ap_engine(7, qr)
-        assert S_p == 0   # inert, but also verifies loop ran
+        assert S_p == 0
 
     def test_qr_branch(self):
-        """
-        Covers line 107: both +1 (QR) and -1 (NQR) branches.
-        Split prime p=5 has both QR and NQR values in the sum.
-        """
+        """Both +1 (QR) and -1 (NQR) branches covered."""
         qr  = build_qr_table(5)
         S_p = fast_ap_engine(5, qr)
-        # S_p = -a_p = -2 for p=5
         assert S_p == -2
 
     def test_cm_property_inert(self):
@@ -165,7 +157,7 @@ class TestFrobeniusTrace:
                 assert abs(S_p) <= 2 * np.sqrt(p) + 1e-9
 
     def test_return_value_is_integer(self):
-        """Covers line 108: return s_t"""
+        """Covers return s_t"""
         qr  = build_qr_table(13)
         S_p = fast_ap_engine(13, qr)
         assert isinstance(int(S_p), int)
@@ -178,43 +170,81 @@ class TestFrobeniusTrace:
 class TestComputePrimeData:
 
     def test_split_p5(self):
-        """p=5: a_p = -S_p = -(-2) = +2"""
+        """p=5: a_p = -S_p = -(-2) = +2. Split in Q(i) since 5 ≡ 1 mod 4."""
         data = compute_prime_data(5)
         assert data["p"] == 5
-        assert data["type"] == "split"
+        assert data["type_E"] == "split_E"
         assert data["pisano_period"] == 20
         assert data["a_p"] == 2
         assert abs(data["norm_trace"] - 2/np.sqrt(5)) < 1e-9
         assert abs(data["weil_ratio"] - 2/(2*np.sqrt(5))) < 1e-9
 
     def test_inert_p7(self):
-        """p=7: CM property => a_p = 0"""
+        """p=7: CM property => a_p = 0. Inert in Q(i) since 7 ≡ 3 mod 4."""
         data = compute_prime_data(7)
         assert data["p"] == 7
-        assert data["type"] == "inert"
+        assert data["type_E"] == "inert_E"
         assert data["pisano_period"] == 16
         assert data["a_p"] == 0
         assert data["norm_trace"] == 0.0
         assert data["weil_ratio"] == 0.0
 
     def test_inert_p3(self):
-        """p=3: smallest inert prime."""
+        """p=3: smallest inert prime (3 ≡ 3 mod 4)."""
         data = compute_prime_data(3)
-        assert data["type"] == "inert"
+        assert data["type_E"] == "inert_E"
         assert data["a_p"] == 0
+
+    def test_type_F5_classification(self):
+        """
+        Verify type_F5 classification (Theorem 1.3 hypothesis):
+            p ≡ ±2 mod 5  =>  inert_F5
+            p ≡ ±1 mod 5  =>  split_F5
+        Key example: p=13 is inert_F5 (13 ≡ 3 ≡ -2 mod 5) but split_E.
+        This illustrates the two conditions are independent.
+        """
+        # inert_F5: p ≡ 2 or 3 mod 5
+        for p in [7, 13, 17, 3]:
+            data = compute_prime_data(p)
+            assert data["type_F5"] == "inert_F5", (
+                f"p={p} should be inert_F5 (p mod 5 = {p % 5})"
+            )
+        # split_F5: p ≡ 1 or 4 mod 5
+        for p in [11, 19, 29, 41]:
+            data = compute_prime_data(p)
+            assert data["type_F5"] == "split_F5", (
+                f"p={p} should be split_F5 (p mod 5 = {p % 5})"
+            )
+
+    def test_type_E_classification(self):
+        """p ≡ 1 mod 4 => split_E, p ≡ 3 mod 4 => inert_E."""
+        for p in [5, 13, 17, 29, 37, 41]:
+            assert compute_prime_data(p)["type_E"] == "split_E", (
+                f"p={p} should be split_E (p mod 4 = {p % 4})"
+            )
+        for p in [3, 7, 11, 19, 23, 31]:
+            assert compute_prime_data(p)["type_E"] == "inert_E", (
+                f"p={p} should be inert_E (p mod 4 = {p % 4})"
+            )
+
+    def test_p13_two_inertness_conditions(self):
+        """
+        p=13: the canonical example showing the two conditions are independent.
+            - inert_F5: 13 ≡ 3 ≡ -2 mod 5  => Theorem 1.3 applies
+            - split_E : 13 ≡ 1 mod 4        => a_p ≠ 0 in general
+            - a_13 = -2 ≠ 0, and S_13 = 2 = -a_13  ✔
+        """
+        data = compute_prime_data(13)
+        assert data["type_F5"] == "inert_F5"
+        assert data["type_E"]  == "split_E"
+        assert data["a_p"] != 0               # not zero! split_E prime
+        assert data["S_p"] == -data["a_p"]    # Theorem 1.3 holds
 
     def test_nonzero_split_primes(self):
         """Guards against algorithmic collapse to zero."""
         for p in [5, 13, 17, 29]:
             data = compute_prime_data(p)
             assert data["a_p"] != 0
-
-    def test_type_classification(self):
-        """p ≡ 1 mod 4 => split, p ≡ 3 mod 4 => inert."""
-        for p in [5, 13, 17, 29, 37, 41]:
-            assert compute_prime_data(p)["type"] == "split"
-        for p in [3, 7, 11, 19, 23, 31]:
-            assert compute_prime_data(p)["type"] == "inert"
 
     def test_internal_consistency(self):
         """weil_ratio = |norm_trace| / 2"""
