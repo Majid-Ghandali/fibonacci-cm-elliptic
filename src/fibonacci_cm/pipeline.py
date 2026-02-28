@@ -40,12 +40,11 @@ except ImportError:  # pragma: no cover
 # ---------------------------------------------------------------------------
 FIELDS = [
     "p",
-    "type",        # ← legacy
-    "type_E",
-    "type_F5",
+    "type_E",       # inert_E / split_E  — CM dichotomy in Q(i),    p mod 4
+    "type_F5",      # inert_F5 / split_F5 — Fibonacci field Q(sqrt(5)), p mod 5
     "pisano_period",
-    "S_p",
-    "a_p",
+    "S_p",          # raw character sum; S_p = -a_p  (Theorem 1.3)
+    "a_p",          # Frobenius trace a_p(E) = -S_p
     "norm_trace",
     "weil_ratio",
 ]
@@ -134,7 +133,8 @@ def run(output_dir: str, max_p: int, mode: str) -> pd.DataFrame:
                     total=len(primes),
                     desc="Computing a_p",
                 ):
-                    writer.writerow(result)
+                    # Write only canonical FIELDS (drop legacy keys if present)
+                    writer.writerow({k: result[k] for k in FIELDS})
                     fh.flush()   # safe checkpoint after every prime
 
     # ── Consolidate, sort, and return ─────────────────────────────────────────
@@ -155,7 +155,6 @@ def _load_sorted(csv_path: Path) -> pd.DataFrame:
     # ── Ensure all required columns exist ──────────────────────────
     for col in FIELDS:
         if col not in df.columns:
-            # Fill missing columns with safe defaults
             if col in ("type_E", "type_F5"):
                 df[col] = "unknown"
             else:
