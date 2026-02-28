@@ -110,14 +110,14 @@ def run(output_dir: str, max_p: int, mode: str) -> pd.DataFrame:
         print("[Info] Existing dataset removed. Starting fresh.")
 
     # ── Resume: find checkpoint ───────────────────────────────────────────────
-    start_p = 3
+    start_p = 2
     if mode == "resume" and csv_path.exists():
         last_p  = get_last_processed_prime(csv_path)
         start_p = last_p + 1
         print(f"[Info] Resuming from p > {last_p:,}")
 
     # ── Enumerate primes and dispatch to worker pool ──────────────────────────
-    primes     = list(sieve.primerange(start_p, max_p + 1))
+    primes = list(sieve.primerange(max(2, start_p), max_p + 1))
     write_mode = "a" if (mode == "resume" and csv_path.exists()) else "w"
 
     if primes:
