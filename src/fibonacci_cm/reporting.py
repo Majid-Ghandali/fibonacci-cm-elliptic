@@ -61,9 +61,6 @@ def print_summary(df: pd.DataFrame) -> None:
         print("CM property verified.")
     else:
         print("CM property ERROR.")
-    else:
-        n_fail = (inert_E_df["a_p"] != 0).sum()
-        print("CM property ERROR.")
 
     # Theorem 1.3: S_p = -a_p for all inert_F5 primes
     inert_F5_df = df[df["type_F5"] == "inert_F5"]
