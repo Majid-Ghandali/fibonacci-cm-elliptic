@@ -54,7 +54,7 @@ def print_summary(df: pd.DataFrame) -> None:
     inert_E_df = df[df["type_E"] == "inert_E"]
 
     if inert_E_df.empty:
-        print("  [OK] CM property: no inert_E primes in dataset.")
+        print(f"  [OK] CM property: no inert_E primes in dataset.")
     elif (inert_E_df["a_p"] == 0).all():
         print(f"  [OK] CM property: a_p = 0 for all {n_inert_E:,} primes inert in Q(i).")
     else:
@@ -65,7 +65,7 @@ def print_summary(df: pd.DataFrame) -> None:
     inert_F5_df = df[df["type_F5"] == "inert_F5"]
 
     if inert_F5_df.empty:
-        print("  [OK] Theorem 1.3: no inert_F5 primes in dataset.")
+        print(f"  [OK] Theorem 1.3: no inert_F5 primes in dataset.")
     elif (inert_F5_df["S_p"] == -inert_F5_df["a_p"]).all():
         print(f"  [OK] Theorem 1.3: S_p = -a_p for all {n_inert_F5:,} primes inert in Q(√5).")
     else:
