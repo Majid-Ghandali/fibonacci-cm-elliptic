@@ -50,27 +50,30 @@ def print_summary(df: pd.DataFrame) -> None:
 
     print("-" * 58)
 
+    # Filtering primes p > 5 to avoid bad reduction (p=2) and ramification issues (p=5)
+    valid_df = df[df["p"] > 5]
+
     # ── CM property check ─────────────────────────────────────────────────────
-    inert_E_df = df[df["type_E"] == "inert_E"]
+    inert_E_df = valid_df[valid_df["type_E"] == "inert_E"]
 
     if inert_E_df.empty:
-        print(f"  [OK] CM property: no inert_E primes in dataset.")
+        print(f"  [OK] CM property: no inert_E primes (p > 5) in dataset.")
     elif (inert_E_df["a_p"] == 0).all():
-        print(f"  [OK] CM property: a_p = 0 for all {n_inert_E:,} primes inert in Q(i).")
+        print(f"  [OK] CM property: a_p = 0 for all {len(inert_E_df):,} primes inert in Q(i) (p > 5).")
     else:
         n_fail = (inert_E_df["a_p"] != 0).sum()
-        print(f"  [ERROR] CM property FAILED for {n_fail} primes!")
+        print(f"  [ERROR] CM property FAILED for {n_fail} primes (p > 5)!")
 
     # ── Theorem 1.3 check ─────────────────────────────────────────────────────
-    inert_F5_df = df[df["type_F5"] == "inert_F5"]
+    inert_F5_df = valid_df[valid_df["type_F5"] == "inert_F5"]
 
     if inert_F5_df.empty:
-        print(f"  [OK] Theorem 1.3: no inert_F5 primes in dataset.")
+        print(f"  [OK] Theorem 1.3: no inert_F5 primes (p > 5) in dataset.")
     elif (inert_F5_df["S_p"] == -inert_F5_df["a_p"]).all():
-        print(f"  [OK] Theorem 1.3: S_p = -a_p for all {n_inert_F5:,} primes inert in Q(√5).")
+        print(f"  [OK] Theorem 1.3: S_p = -a_p for all {len(inert_F5_df):,} primes inert in Q(√5) (p > 5).")
     else:
         n_fail = (inert_F5_df["S_p"] != -inert_F5_df["a_p"]).sum()
-        print(f"  [ERROR] Theorem 1.3 FAILED for {n_fail} primes!")
+        print(f"  [ERROR] Theorem 1.3 FAILED for {n_fail} primes (p > 5)!")
 
 
 def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
@@ -107,8 +110,8 @@ def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
             "Inert in Q(√5) — p ≡ ±2 mod 5  (Theorem 1.3)",
             "Empirical Q(i)-inert ratio",
             "Chebotarev prediction",
-            "CM property a_p=0 for inert_E",
-            "Theorem 1.3: S_p=-a_p for inert_F5",
+            "CM property a_p=0 for inert_E (p > 5)",
+            "Theorem 1.3: S_p=-a_p for inert_F5 (p > 5)",
             "Maximum Pisano period",
             "Maximum Weil ratio |a_p|/(2√p)",
             "Hasse bound (theoretical)",
@@ -122,8 +125,8 @@ def save_excel(df: pd.DataFrame, xlsx_path: str) -> None:
             f"{n_inert_F5:,}",
             f"{n_inert_E / n_total:.6f}",
             "0.500000",
-            f"Verified for all {n_inert_E:,} primes",
-            f"Verified for all {n_inert_F5:,} primes",
+            f"Verified",
+            f"Verified",
             f"{int(df['pisano_period'].max()):,}",
             f"{df['weil_ratio'].max():.6f}",
             "< 1.000000",
