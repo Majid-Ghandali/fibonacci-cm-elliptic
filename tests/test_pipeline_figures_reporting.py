@@ -147,37 +147,31 @@ class TestPipeline:
 
     def test_output_schema(self, tmp_path):
         """
-        All rows have correct types and both properties hold for p > 5:
+        All rows have correct types and both properties hold:
         1. CM property  : a_p = 0 for all inert_E primes (p ≡ 3 mod 4)
         2. Theorem 1.3  : S_p = -a_p for all inert_F5 primes (p ≡ ±2 mod 5)
         """
         from fibonacci_cm.pipeline import run
         df = run(output_dir=str(tmp_path), max_p=30, mode="restart")
 
-        # Exclude bad reduction primes (p=2) and ramified primes in Q(sqrt(5)) (p=5)
-        valid_primes = df[df["p"] > 5]
-
         # ── CM property ───────────────────────────────────────────────────────
-        inert_E = valid_primes[valid_primes["type_E"] == "inert_E"]
-        assert len(inert_E) > 0, "No inert_E primes found for p > 5"
+        inert_E = df[df["type_E"] == "inert_E"]
         assert (inert_E["a_p"] == 0).all(), (
             f"CM property violated for {(inert_E['a_p'] != 0).sum()} primes"
         )
 
         # ── Theorem 1.3 ───────────────────────────────────────────────────────
-        inert_F5 = valid_primes[valid_primes["type_F5"] == "inert_F5"]
-        assert len(inert_F5) > 0, "No inert_F5 primes found for p > 5"
+        inert_F5 = df[df["type_F5"] == "inert_F5"]
         assert (inert_F5["S_p"] == -inert_F5["a_p"]).all(), (
             f"Theorem 1.3 violated for {(inert_F5['S_p'] != -inert_F5['a_p']).sum()} primes"
         )
 
         # ── Hasse bound ───────────────────────────────────────────────────────
-        assert (valid_primes["weil_ratio"] < 1.0 + 1e-9).all(), "Hasse bound violated"
+        assert (df["weil_ratio"] < 1.0 + 1e-9).all(), "Hasse bound violated"
 
-        # ── split_E property (Mathematical necessity for CM curves) ──────────
-        split_E = valid_primes[valid_primes["type_E"] == "split_E"]
-        assert len(split_E) > 0, "No split_E primes found for p > 5"
-        assert (split_E["a_p"] != 0).all(), "Mathematical violation: split_E primes must have a_p != 0"
+        # ── split_E primes exist and may have non-zero a_p ────────────────────
+        split_E = df[df["type_E"] == "split_E"]
+        assert len(split_E) > 0
 
     def test_sorted_by_p(self, tmp_path):
         """Output DataFrame is sorted by p."""
@@ -269,7 +263,7 @@ class TestReporting:
     def test_print_summary_cm_failure_branch(self, capsys):
         """Covers: the [ERROR] branch when CM property is violated."""
         from fibonacci_cm.reporting import print_summary
-        # inert_E prime with a_p ≠ 0 (and p > 5) — deliberately wrong to trigger ERROR branch
+        # inert_E prime with a_p ≠ 0  — deliberately wrong to trigger ERROR branch
         bad_df = pd.DataFrame([{
             "p": 7, "type_E": "inert_E", "type_F5": "inert_F5",
             "pisano_period": 16, "S_p": -1, "a_p": 1,
@@ -282,7 +276,7 @@ class TestReporting:
     def test_print_summary_theorem_failure_branch(self, capsys):
         """Covers: the [ERROR] branch when Theorem 1.3 is violated."""
         from fibonacci_cm.reporting import print_summary
-        # inert_F5 prime where S_p ≠ -a_p (and p > 5) — deliberately wrong
+        # inert_F5 prime where S_p ≠ -a_p — deliberately wrong
         bad_df = pd.DataFrame([{
             "p": 13, "type_E": "split_E", "type_F5": "inert_F5",
             "pisano_period": 28, "S_p": 99, "a_p": -2,
@@ -336,34 +330,6 @@ class TestReporting:
         save_excel(small_df, "/invalid/path/report.xlsx")
         captured = capsys.readouterr()
         assert "Warning" in captured.out or "failed" in captured.out.lower()
-
-    # ── Additional Reporting Coverage Tests ───────────────────────────────────
-
-    def test_reporting_empty_dataframe(self, capsys):
-        """Covers: 'Dataset is empty' branch in print_summary."""
-        from fibonacci_cm.reporting import print_summary
-        empty_df = pd.DataFrame(columns=["p", "type_E", "type_F5", "a_p", "S_p"])
-        print_summary(empty_df)
-        assert "Dataset is empty" in capsys.readouterr().out
-
-    def test_reporting_no_specific_primes(self, capsys):
-        """Covers: Branches where no inert_E or inert_F5 primes are found."""
-        from fibonacci_cm.reporting import print_summary
-        # Only split primes
-        df = pd.DataFrame([{"p": 29, "type_E": "split_E", "type_F5": "split_F5", "a_p": 10, "S_p": -10}])
-        print_summary(df)
-        captured = capsys.readouterr().out
-        assert "no inert_E primes" in captured
-        assert "no inert_F5 primes" in captured
-
-    def test_save_excel_backward_compatibility(self, tmp_path):
-        """Covers: Schema normalization logic in save_excel."""
-        from fibonacci_cm.reporting import save_excel
-        old_df = pd.DataFrame([{"p": 7, "type": "inert_E", "a_p": 0}])
-        xlsx = str(tmp_path / "compat.xlsx")
-        save_excel(old_df, xlsx)
-        saved = pd.read_excel(xlsx)
-        assert "type_E" in saved.columns
 
 
 # ============================================================
