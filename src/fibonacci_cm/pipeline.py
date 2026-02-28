@@ -17,6 +17,13 @@ Architecture
 - Results written row-by-row to CSV (safe to interrupt at any point).
 - Progress bar via tqdm.
 - Path-based I/O via pathlib for cross-platform compatibility.
+
+Note on prime range
+-------------------
+Computation starts from p=3. The prime p=2 is excluded because the
+character sum formula for E: y^2 = x^3 - 4x is not valid at p=2
+(the curve has bad reduction at 2), and the CM/Theorem 1.3 framework
+applies only for odd primes p > 5.
 """
 
 import csv
@@ -48,6 +55,12 @@ FIELDS = [
     "norm_trace",
     "weil_ratio",
 ]
+
+# Smallest prime included in the dataset.
+# p=2 is excluded: E: y^2 = x^3 - 4x has bad reduction at 2,
+# and the CM / Theorem 1.3 framework applies only for odd primes p > 5.
+MIN_PRIME = 3
+
 CSV_FILENAME = "Dataset_Raw_Primes.csv"
 
 
@@ -109,14 +122,14 @@ def run(output_dir: str, max_p: int, mode: str) -> pd.DataFrame:
         print("[Info] Existing dataset removed. Starting fresh.")
 
     # ── Resume: find checkpoint ───────────────────────────────────────────────
-    start_p = 2
+    start_p = MIN_PRIME   # always start from p=3
     if mode == "resume" and csv_path.exists():
         last_p  = get_last_processed_prime(csv_path)
-        start_p = last_p + 1
+        start_p = max(last_p + 1, MIN_PRIME)
         print(f"[Info] Resuming from p > {last_p:,}")
 
     # ── Enumerate primes and dispatch to worker pool ──────────────────────────
-    primes = list(sieve.primerange(max(2, start_p), max_p + 1))
+    primes = list(sieve.primerange(start_p, max_p + 1))
     write_mode = "a" if (mode == "resume" and csv_path.exists()) else "w"
 
     if primes:
